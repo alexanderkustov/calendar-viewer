@@ -9,33 +9,20 @@
 <body>
 
 <div class="topbar">
-  <div class="brand">
-    <h1>Stay Timeline</h1>
-    <span class="subtitle">Airbnb · Next 90 Days</span>
-  </div>
-  <div class="status-bar" id="statusBar">
-    <div class="loading-msg" id="loadingMsg">
-      <span class="spinner"></span>&nbsp;Loading calendars…
-    </div>
+  <div class="status-bar" id="statusBar" style="margin:auto; justify-content:center;">
     <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">↺ Refresh</button>
   </div>
 </div>
 
 <div class="main">
+  <div id="loadingMsg" style="display:none; justify-content:center; align-items:center; font-size:1.2em; color:#2e6da4; margin-bottom:10px;">Loading calendars...</div>
   <div class="error-banner" id="errorBanner"></div>
   <div id="calendarContainer"></div>
 </div>
 
 <div class="tooltip" id="tooltip"></div>
 
-<div id="passwordModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:1000;">
-  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:2em;border-radius:8px;box-shadow:0 2px 16px #0002;">
-    <h2>Password Required</h2>
-    <input type="password" id="passwordInput" placeholder="Enter password" style="font-size:1.2em;padding:0.5em;width:100%;margin-bottom:1em;" autofocus>
-    <button onclick="submitPassword()" style="font-size:1.2em;padding:0.5em 1em;">Submit</button>
-    <div id="passwordError" style="color:red;margin-top:1em;"></div>
-  </div>
-</div>
+<!-- Password modal removed -->
 
 <script src="main.js"></script>
 </body>

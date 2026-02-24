@@ -21,21 +21,23 @@
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'Jost', sans-serif;
-  font-weight: 300;
+  font-family: 'Futura Extra Bold Condensed', 'Futura Condensed', 'Arial Narrow', Arial, sans-serif;
+  font-weight: 400;
   min-height: 100vh;
+  font-size: 1.15em;
+  letter-spacing: 0.03em;
 }
 
 /* ── Topbar ─────────────────────────────────────────────────────────────── */
 
 .topbar {
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  padding: 1.4rem 2.5rem;
+  border-bottom: 2px solid var(--border-strong);
+  padding: 2rem 3rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 2rem;
+  justify-content: center;
+  gap: 0;
   flex-wrap: wrap;
   position: sticky;
   top: 0;
@@ -45,19 +47,21 @@ body {
 .brand { display: flex; flex-direction: column; gap: 0.1rem; }
 
 h1 {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.9rem;
+  font-family: 'Futura Extra Bold Condensed', 'Futura Condensed', 'Arial Narrow', Arial, sans-serif;
+  font-size: 2.6rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--text);
-  line-height: 1;
+  letter-spacing: 0.04em;
+  color: #333;
+  line-height: 1.1;
+  text-shadow: none;
 }
 
 .subtitle {
-  font-size: 0.6rem;
-  color: var(--muted);
+  font-size: 1rem;
+  color: var(--text);
   text-transform: uppercase;
   letter-spacing: 0.2em;
+  font-weight: 500;
 }
 
 /* ── Status pills ───────────────────────────────────────────────────────── */
@@ -128,7 +132,7 @@ h1 {
 
 /* ── Main ───────────────────────────────────────────────────────────────── */
 
-.main { padding: 2rem 2.5rem; max-width: 1100px; margin: 0 auto; }
+ .main { padding: 2.5rem 3rem; max-width: 1400px; margin: 0 auto; background: #fff; border-radius: 18px; box-shadow: none; }
 
 /* ── Legend ─────────────────────────────────────────────────────────────── */
 
@@ -158,15 +162,16 @@ h1 {
 /* ── Error banner ───────────────────────────────────────────────────────── */
 
 .error-banner {
-  background: #fff5f5;
-  border: 1px solid #fcc;
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  font-size: 0.72rem;
-  color: var(--checkout-color);
-  margin-bottom: 1.5rem;
+  background: #ff1744;
+  border: 2px solid #fff;
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
+  font-size: 1.1rem;
+  color: #fff;
+  margin-bottom: 2rem;
   display: none;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  font-weight: bold;
 }
 
 /* ── Month section ──────────────────────────────────────────────────────── */
@@ -182,19 +187,21 @@ h1 {
 }
 
 .month-name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: 0.01em;
+  font-family: 'Futura Extra Bold Condensed', 'Futura Condensed', 'Arial Narrow', Arial, sans-serif;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+  letter-spacing: 0.12em;
+  text-shadow: none;
+  text-transform: uppercase;
 }
 
 .month-year {
-  font-size: 0.7rem;
-  color: var(--muted);
+  font-size: 1.1rem;
+  color: var(--text);
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 /* ── Month card ─────────────────────────────────────────────────────────── */
@@ -203,7 +210,7 @@ h1 {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: var(--shadow);
+  box-shadow: none;
   overflow: hidden;
 }
 
@@ -225,12 +232,13 @@ h1 {
 
 .dow-cell {
   text-align: center;
-  font-size: 0.55rem;
+  font-size: 1.15rem;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--muted);
-  padding: 0.55rem 0;
-  font-weight: 400;
+  padding: 0.85rem 0;
+  font-weight: 700;
+  font-family: 'Futura Extra Bold Condensed', 'Futura Condensed', 'Arial Narrow', Arial, sans-serif;
 }
 
 /* ── Row label cell ─────────────────────────────────────────────────────── */
@@ -245,12 +253,12 @@ h1 {
 
 .date-cell {
   text-align: center;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-family: 'Futura Extra Bold Condensed', 'Futura Condensed', 'Arial Narrow', Arial, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 900;
   color: var(--text);
-  padding: 0.4rem 0 0.2rem;
-  line-height: 1;
+  padding: 0.7rem 0 0.3rem;
+  line-height: 1.1;
 }
 
 .date-cell.is-today {
@@ -400,7 +408,7 @@ h1 {
   display: none;
   max-width: 210px;
   line-height: 1.8;
-  box-shadow: var(--shadow-lg);
+  box-shadow: none;
 }
 .tooltip strong {
   font-family: 'Cormorant Garamond', serif;
@@ -486,19 +494,58 @@ h1 {
 
 .month-heading {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 2.5rem;
   margin-bottom: 0.75rem;
   padding-left: var(--row-label-w);
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
 }
 
 .month-title {
   display: flex;
-  align-items: baseline;
-  gap: 0.6rem;
-  flex-shrink: 0;
+  align-items: flex-end;
+  gap: 2.5rem;
+  flex-shrink: 1;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+}
+
+.month-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.month-tech-label {
+  font-family: 'Oswald', 'Futura Condensed', 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.85rem;
+  color: #222;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.month-big-num {
+  font-family: 'Futura Extra Bold Condensed', 'Futura Condensed', 'Arial Narrow', Arial, sans-serif;
+  font-size: 4.5rem;
+  font-weight: 900;
+  color: #333;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  margin-left: 1.5rem;
+  opacity: 0.13;
+}
+
+.month-section-line {
+  width: 100%;
+  border: none;
+  border-top: 2px solid #e8e3db;
+  margin: 1.2rem 0 0.7rem 0;
+}
 }
 
 /* ── Occupancy stats ─────────────────────────────────────────────────────── */
@@ -507,9 +554,10 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
-  flex: 1;
+  flex: 0 0 340px;
   max-width: 340px;
   padding-top: 0.25rem;
+  align-items: flex-end;
 }
 
 .occ-stat {

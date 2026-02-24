@@ -93,43 +93,32 @@ function occupancyForMonth(ci, year, month) {
 
 // ─── Fetch ───────────────────────────────────────────────────────────────────
 
-let userPassword = null;
+// Password logic removed
 
 function showPasswordModal() {
-  document.getElementById('passwordModal').style.display = 'block';
-  document.getElementById('passwordInput').value = '';
-  document.getElementById('passwordError').textContent = '';
+  // Password modal removed
 }
 
 function hidePasswordModal() {
-  document.getElementById('passwordModal').style.display = 'none';
+  // Password modal removed
 }
 
 function submitPassword() {
-  const input = document.getElementById('passwordInput').value;
-  userPassword = input;
-  hidePasswordModal();
-  loadAll();
+  // Password modal removed
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  showPasswordModal();
+  // Password modal removed
 });
 
 async function loadAll() {
-  if (!userPassword) {
-    showPasswordModal();
-    return;
-  }
   setStatus('loading');
   calData = [null, null, null];
   const errors = [];
 
   await Promise.all(CALENDARS_META.map(async (meta, idx) => {
     try {
-      const res = await fetch(`/api/ical?id=${idx}`, {
-        headers: { 'x-password': userPassword }
-      });
+      const res = await fetch(`/api/ical?id=${idx}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
       if (!text.includes('BEGIN:VCALENDAR')) throw new Error('Not a valid iCal response');
@@ -145,12 +134,7 @@ async function loadAll() {
   if (errors.length) {
     const banner = document.getElementById('errorBanner');
     banner.style.display = 'block';
-    if (errors.some(e => e.includes('HTTP 401'))) {
-      banner.textContent = 'Incorrect password. Please try again.';
-      userPassword = null;
-      showPasswordModal();
-      return;
-    }
+    // No password errors
     banner.textContent = 'Some calendars failed to load. Make sure server.js is running. ' + errors.join(' | ');
   } else {
     document.getElementById('errorBanner').style.display = 'none';
@@ -221,9 +205,16 @@ function buildMonth(monthStart, today, rangeEnd) {
 
   const titleEl = document.createElement('div');
   titleEl.className = 'month-title';
-  titleEl.innerHTML = `<span class="month-name">${MONTH_NAMES[month]}</span><span class="month-year">${year}</span>`;
+  titleEl.innerHTML = `
+    <div class="month-labels">
+      <span class="month-tech-label">MONTH</span>
+      <span class="month-tech-label">${MONTH_NAMES[month].toUpperCase()}</span>
+      <span class="month-tech-label">YEAR</span>
+      <span class="month-tech-label">${year}</span>
+    </div>
+    <div class="month-big-num">${month + 1}</div>
+  `;
   heading.appendChild(titleEl);
-
   // Occupancy stats — one per visible calendar
   const statsEl = document.createElement('div');
   statsEl.className = 'month-stats';
@@ -248,6 +239,10 @@ function buildMonth(monthStart, today, rangeEnd) {
   });
 
   heading.appendChild(statsEl);
+  // Add horizontal line
+  const hr = document.createElement('hr');
+  hr.className = 'month-section-line';
+  heading.appendChild(hr);
   section.appendChild(heading);
 
   // ── Calendar grid card ───────────────────────────────────────────────────
