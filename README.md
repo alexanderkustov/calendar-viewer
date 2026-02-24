@@ -1,5 +1,7 @@
 # Calendar Viewer
 
+https://calendar-viewer-production.up.railway.app/
+
 A lightweight Node.js + vanilla JavaScript web app that shows Airbnb iCal availability across multiple properties in a single 90-day timeline view.
 
 ## Features
