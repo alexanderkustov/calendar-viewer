@@ -28,6 +28,15 @@
 
 <div class="tooltip" id="tooltip"></div>
 
+<div id="passwordModal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:1000;">
+  <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:2em;border-radius:8px;box-shadow:0 2px 16px #0002;">
+    <h2>Password Required</h2>
+    <input type="password" id="passwordInput" placeholder="Enter password" style="font-size:1.2em;padding:0.5em;width:100%;margin-bottom:1em;" autofocus>
+    <button onclick="submitPassword()" style="font-size:1.2em;padding:0.5em 1em;">Submit</button>
+    <div id="passwordError" style="color:red;margin-top:1em;"></div>
+  </div>
+</div>
+
 <script src="main.js"></script>
 </body>
 </html>

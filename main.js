@@ -93,14 +93,43 @@ function occupancyForMonth(ci, year, month) {
 
 // ─── Fetch ───────────────────────────────────────────────────────────────────
 
+let userPassword = null;
+
+function showPasswordModal() {
+  document.getElementById('passwordModal').style.display = 'block';
+  document.getElementById('passwordInput').value = '';
+  document.getElementById('passwordError').textContent = '';
+}
+
+function hidePasswordModal() {
+  document.getElementById('passwordModal').style.display = 'none';
+}
+
+function submitPassword() {
+  const input = document.getElementById('passwordInput').value;
+  userPassword = input;
+  hidePasswordModal();
+  loadAll();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  showPasswordModal();
+});
+
 async function loadAll() {
+  if (!userPassword) {
+    showPasswordModal();
+    return;
+  }
   setStatus('loading');
   calData = [null, null, null];
   const errors = [];
 
   await Promise.all(CALENDARS_META.map(async (meta, idx) => {
     try {
-      const res = await fetch(`/api/ical?id=${idx}`);
+      const res = await fetch(`/api/ical?id=${idx}`, {
+        headers: { 'x-password': userPassword }
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const text = await res.text();
       if (!text.includes('BEGIN:VCALENDAR')) throw new Error('Not a valid iCal response');
@@ -116,6 +145,12 @@ async function loadAll() {
   if (errors.length) {
     const banner = document.getElementById('errorBanner');
     banner.style.display = 'block';
+    if (errors.some(e => e.includes('HTTP 401'))) {
+      banner.textContent = 'Incorrect password. Please try again.';
+      userPassword = null;
+      showPasswordModal();
+      return;
+    }
     banner.textContent = 'Some calendars failed to load. Make sure server.js is running. ' + errors.join(' | ');
   } else {
     document.getElementById('errorBanner').style.display = 'none';
