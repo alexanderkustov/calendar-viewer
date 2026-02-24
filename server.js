@@ -70,9 +70,12 @@ function sendFile(res, filePath) {
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
 
+    // Password protection removed — all routes accessible
+
+  // CORS headers for all responses
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "x-password, Content-Type");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
     res.writeHead(204);
