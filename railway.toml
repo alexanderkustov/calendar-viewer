@@ -1,0 +1,7 @@
+# Railway deployment configuration
+# See: https://docs.railway.app/guides/nodejs/
+[build]
+# No build step for simple Node.js server
+
+[start]
+command = "node server.js"
