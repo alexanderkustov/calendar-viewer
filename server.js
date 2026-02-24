@@ -52,23 +52,12 @@ function fetchUrl(targetUrl) {
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
 
-  // Password protection: require ?password=airbnb100calcas or header 'x-password'
-  const PASSWORD = "airbnb100calcas";
-  const passwordFromQuery = parsedUrl.query.password;
-  const passwordFromHeader = req.headers["x-password"];
-  const isProtectedRoute = req.method !== "OPTIONS";
-  const isPasswordValid = passwordFromQuery === PASSWORD || passwordFromHeader === PASSWORD;
-  if (isProtectedRoute && !isPasswordValid) {
-    res.writeHead(401, { "Content-Type": "text/plain" });
-    res.end("Unauthorized: Password required");
-    return;
-  }
+    // Password protection removed — all routes accessible
 
   // CORS headers for all responses
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-  res.setHeader("Access-Control-Allow-Headers", "x-password, Content-Type");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
     res.writeHead(204);
