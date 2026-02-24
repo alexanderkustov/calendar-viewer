@@ -1,45 +1,67 @@
 # Calendar Viewer
 
-A lightweight Node.js + vanilla JavaScript web app that shows Airbnb iCal availability across multiple properties in a single 90-day timeline view.
+A lightweight Node.js + vanilla JavaScript app that shows Airbnb iCal availability across multiple properties in a shared 90-day timeline.
 
 ## Features
 
-- Aggregates three Airbnb iCal feeds through a local proxy (`/api/ical`) to avoid browser CORS issues.
-- Displays bookings in a month-by-month timeline.
+- Aggregates Airbnb iCal feeds through a local proxy (`/api/ical`) to avoid browser CORS issues.
+- Displays bookings month-by-month.
 - Shows monthly occupancy percentages per property.
-- Lets you toggle each property on/off in the UI.
-- Protects access with a simple password gate.
+- Lets you toggle each property on/off.
+- Uses a simple password gate for both API and served frontend.
 
 ## Project structure
 
-- `server.js` — HTTP server, static file serving, iCal proxy API, and password check.
-- `index.html` — main page markup.
-- `main.js` — iCal parsing, data loading, occupancy calculation, and calendar rendering.
-- `style.css` — app styling.
+- `server.js` — Node HTTP server for the iCal proxy API and production static serving from `dist/`.
+- `index.html` — app shell entry used by Vite.
+- `src/main.js` — UI logic, iCal parsing, occupancy calculation, and timeline rendering.
+- `src/style.css` — app styling.
 
 ## Prerequisites
 
 - Node.js 18+ (Node 20 recommended)
 
-## Run locally
+## Run locally (Vite + API)
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Run the frontend dev server:
+
+```bash
+npm run dev
+```
+
+Run the API server in another terminal:
 
 ```bash
 npm start
 ```
 
-Then open:
+Then open the Vite URL (usually `http://localhost:5173`).
 
-- `http://localhost:3000`
+## Build + production run
 
-When prompted, enter the app password currently defined in `server.js`.
+```bash
+npm run build
+npm start
+```
 
-## Configuration notes
+This serves the Vite build output (`dist/`) from the Node server.
 
-- **Port**: set `PORT` environment variable to override the default (`3000`).
-- **Calendars**: edit the `CALENDARS` array in `server.js`.
-- **Password**: edit the `PASSWORD` constant in `server.js`.
+## Configuration
 
-> ⚠️ Security note: the current password protection is intentionally simple and suitable only for low-risk/private usage.
+- **Server port**: `PORT` (default `3000`)
+- **App password**: `APP_PASSWORD` (default value in `server.js`)
+- **Calendars**: edit the `CALENDARS` array in `server.js`
+- **Frontend API base (dev/remote API)**: `VITE_API_BASE`
+  - Empty by default, so frontend calls same-origin `/api/...`
+  - Example: `VITE_API_BASE=http://localhost:3000 npm run dev`
+
+> ⚠️ Security note: the password protection is intentionally simple and only suitable for low-risk/private usage.
 
 ## API endpoints
 
@@ -53,4 +75,8 @@ For protected routes, provide password either as:
 
 ## Deploy
 
-The repository includes `railway.toml`, so it can be deployed to Railway with the Node start command.
+The repository includes `railway.toml` and can run using:
+
+```bash
+npm run build && npm start
+```

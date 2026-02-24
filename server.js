@@ -1,6 +1,5 @@
 // Simple iCal proxy server — bypasses CORS for Airbnb iCal URLs
 // Usage: node server.js
-// Then open http://localhost:3000 in your browser
 
 const http = require("http");
 const https = require("https");
@@ -9,6 +8,8 @@ const path = require("path");
 const url = require("url");
 
 const PORT = process.env.PORT || 3000;
+const PASSWORD = process.env.APP_PASSWORD || "airbnb100calcas";
+const DIST_DIR = path.join(__dirname, "dist");
 
 const CALENDARS = [
   {
@@ -25,6 +26,16 @@ const CALENDARS = [
   },
 ];
 
+const MIME = {
+  ".html": "text/html; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".js": "application/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".ico": "image/x-icon",
+  ".svg": "image/svg+xml; charset=utf-8",
+  ".png": "image/png",
+};
+
 function fetchUrl(targetUrl) {
   return new Promise((resolve, reject) => {
     https
@@ -36,7 +47,6 @@ function fetchUrl(targetUrl) {
           },
         },
         (res) => {
-          // Handle redirects
           if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
             return fetchUrl(res.headers.location).then(resolve).catch(reject);
           }
@@ -49,25 +59,19 @@ function fetchUrl(targetUrl) {
   });
 }
 
+function sendFile(res, filePath) {
+  if (!fs.existsSync(filePath)) return false;
+  const ext = path.extname(filePath);
+  res.writeHead(200, { "Content-Type": MIME[ext] || "application/octet-stream" });
+  res.end(fs.readFileSync(filePath));
+  return true;
+}
+
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
 
-  // Password protection: require ?password=airbnb100calcas or header 'x-password'
-  const PASSWORD = "airbnb100calcas";
-  const passwordFromQuery = parsedUrl.query.password;
-  const passwordFromHeader = req.headers["x-password"];
-  const isProtectedRoute = req.method !== "OPTIONS";
-  const isPasswordValid = passwordFromQuery === PASSWORD || passwordFromHeader === PASSWORD;
-  if (isProtectedRoute && !isPasswordValid) {
-    res.writeHead(401, { "Content-Type": "text/plain" });
-    res.end("Unauthorized: Password required");
-    return;
-  }
-
-  // CORS headers for all responses
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Headers", "x-password, Content-Type");
 
   if (req.method === "OPTIONS") {
@@ -76,42 +80,29 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Serve static files (index.html, style.css, main.js)
-  const STATIC = {
-    "/":           { file: "index.html", mime: "text/html; charset=utf-8" },
-    "/index.html": { file: "index.html", mime: "text/html; charset=utf-8" },
-    "/style.css":  { file: "style.css",  mime: "text/css; charset=utf-8" },
-    "/main.js":    { file: "main.js",    mime: "application/javascript; charset=utf-8" },
-  };
-
-  if (STATIC[parsedUrl.pathname]) {
-    const { file, mime } = STATIC[parsedUrl.pathname];
-    const filePath = path.join(__dirname, file);
-    if (fs.existsSync(filePath)) {
-      res.writeHead(200, { "Content-Type": mime });
-      res.end(fs.readFileSync(filePath));
-    } else {
-      res.writeHead(404);
-      res.end(`${file} not found — make sure all files are in the same folder as server.js`);
-    }
+  const passwordFromQuery = parsedUrl.query.password;
+  const passwordFromHeader = req.headers["x-password"];
+  const isPasswordValid = passwordFromQuery === PASSWORD || passwordFromHeader === PASSWORD;
+  if (!isPasswordValid) {
+    res.writeHead(401, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Unauthorized: Password required");
     return;
   }
 
-  // API: return calendar list
   if (parsedUrl.pathname === "/api/calendars") {
-    res.writeHead(200, { "Content-Type": "application/json" });
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
     res.end(JSON.stringify(CALENDARS.map((c, i) => ({ id: i, name: c.name }))));
     return;
   }
 
-  // API: proxy a calendar by index
   if (parsedUrl.pathname === "/api/ical") {
     const id = parseInt(parsedUrl.query.id, 10);
     if (isNaN(id) || id < 0 || id >= CALENDARS.length) {
-      res.writeHead(400, { "Content-Type": "application/json" });
+      res.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
       res.end(JSON.stringify({ error: "Invalid calendar id" }));
       return;
     }
+
     try {
       console.log(`Fetching calendar ${id}: ${CALENDARS[id].name}`);
       const icsData = await fetchUrl(CALENDARS[id].url);
@@ -119,19 +110,28 @@ const server = http.createServer(async (req, res) => {
       res.end(icsData);
     } catch (err) {
       console.error(`Error fetching calendar ${id}:`, err.message);
-      res.writeHead(502, { "Content-Type": "application/json" });
+      res.writeHead(502, { "Content-Type": "application/json; charset=utf-8" });
       res.end(JSON.stringify({ error: err.message }));
     }
     return;
   }
 
-  res.writeHead(404);
-  res.end("Not found");
+  const safePath = path.normalize(parsedUrl.pathname || "/").replace(/^\/+/g, "");
+  const assetPath = path.join(DIST_DIR, safePath);
+  if (safePath && fs.existsSync(assetPath) && fs.statSync(assetPath).isFile()) {
+    sendFile(res, assetPath);
+    return;
+  }
+
+  if (sendFile(res, path.join(DIST_DIR, "index.html"))) {
+    return;
+  }
+
+  res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+  res.end("Not found. Build the frontend first with: npm run build");
 });
 
 server.listen(PORT, () => {
-  console.log(`\n✅  iCal proxy running at http://localhost:${PORT}`);
-  console.log(`   Open http://localhost:${PORT} in your browser\n`);
-  CALENDARS.forEach((c, i) => console.log(`   Calendar ${i}: ${c.name}`));
-  console.log();
+  console.log(`\n✅ iCal proxy running at http://localhost:${PORT}`);
+  console.log("   Use `npm run dev` for Vite dev server and `npm run build` for production assets.\n");
 });
