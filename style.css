@@ -1,0 +1,563 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Jost:wght@300;400;500&display=swap');
+
+:root {
+  --bg:             #faf9f7;
+  --surface:        #ffffff;
+  --surface2:       #f4f2ee;
+  --border:         #e8e3db;
+  --border-strong:  #cfc8bc;
+  --text:           #1a1714;
+  --muted:          #9c9489;
+  --today-accent:   #b8860b;
+  --checkin-color:  #27795a;
+  --checkout-color: #c0392b;
+  --shadow:         0 2px 16px rgba(0,0,0,0.06);
+  --shadow-lg:      0 8px 40px rgba(0,0,0,0.10);
+  --row-label-w:    110px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Jost', sans-serif;
+  font-weight: 300;
+  min-height: 100vh;
+}
+
+/* ── Topbar ─────────────────────────────────────────────────────────────── */
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1.4rem 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.brand { display: flex; flex-direction: column; gap: 0.1rem; }
+
+h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  line-height: 1;
+}
+
+.subtitle {
+  font-size: 0.6rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+/* ── Status pills ───────────────────────────────────────────────────────── */
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.cal-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 0.28rem 0.75rem;
+  font-size: 0.64rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  transition: all 0.3s;
+}
+.cal-pill.loaded { color: var(--text); border-color: var(--cal-color); }
+.cal-pill.error  { border-color: var(--checkout-color); color: var(--checkout-color); }
+.cal-pill .status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--border-strong);
+  transition: background 0.3s;
+}
+.cal-pill.loaded .status-dot { background: var(--cal-color); }
+.cal-pill.error  .status-dot { background: var(--checkout-color); }
+
+.loading-msg {
+  font-size: 0.64rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+.spinner {
+  width: 10px; height: 10px;
+  border: 1.5px solid var(--border);
+  border-top-color: var(--muted);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.refresh-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 0.28rem 0.65rem;
+  cursor: pointer;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.64rem;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+}
+.refresh-btn:hover { border-color: var(--text); color: var(--text); }
+
+/* ── Main ───────────────────────────────────────────────────────────────── */
+
+.main { padding: 2rem 2.5rem; max-width: 1100px; margin: 0 auto; }
+
+/* ── Legend ─────────────────────────────────────────────────────────────── */
+
+.legend {
+  display: flex;
+  gap: 1.75rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.64rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* ── Error banner ───────────────────────────────────────────────────────── */
+
+.error-banner {
+  background: #fff5f5;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.72rem;
+  color: var(--checkout-color);
+  margin-bottom: 1.5rem;
+  display: none;
+  letter-spacing: 0.02em;
+}
+
+/* ── Month section ──────────────────────────────────────────────────────── */
+
+.month-section { margin-bottom: 2.5rem; }
+
+.month-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  padding-left: var(--row-label-w);
+}
+
+.month-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.01em;
+}
+
+.month-year {
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+/* ── Month card ─────────────────────────────────────────────────────────── */
+
+.month-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* ── Shared grid row ────────────────────────────────────────────────────── */
+
+.dow-header,
+.week-date-row,
+.booking-row {
+  display: grid;
+  grid-template-columns: var(--row-label-w) repeat(7, 1fr);
+}
+
+/* ── Day-of-week header ─────────────────────────────────────────────────── */
+
+.dow-header {
+  border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+
+.dow-cell {
+  text-align: center;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  padding: 0.55rem 0;
+  font-weight: 400;
+}
+
+/* ── Row label cell ─────────────────────────────────────────────────────── */
+
+.row-label-cell { /* placeholder */ }
+
+/* ── Date number row ────────────────────────────────────────────────────── */
+
+.week-date-row {
+  border-bottom: 1px solid var(--border);
+}
+
+.date-cell {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  padding: 0.4rem 0 0.2rem;
+  line-height: 1;
+}
+
+.date-cell.is-today {
+  color: var(--today-accent);
+  position: relative;
+}
+.date-cell.is-today::after {
+  content: '';
+  display: block;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--today-accent);
+  margin: 3px auto 0;
+}
+
+.date-cell.out-of-month { color: var(--border-strong); }
+.date-cell.out-of-range { color: var(--border); }
+
+/* ── Booking row ────────────────────────────────────────────────────────── */
+
+.booking-row {
+  min-height: 32px;
+  align-items: stretch;
+}
+
+.row-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.58rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0 0.6rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: 1px solid var(--border);
+}
+
+.label-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Booking cell ───────────────────────────────────────────────────────── */
+
+.booking-cell {
+  position: relative;
+  height: 32px;
+  display: flex;
+  align-items: center;
+}
+
+.booking-cell.dimmed { background: rgba(0,0,0,0.018); }
+
+/* ── Booking segment bar ────────────────────────────────────────────────── */
+
+.booking-seg {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 20px;
+  left: 0; right: 0;
+  background: var(--bar-color);
+  opacity: 0.82;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  transition: opacity 0.15s, filter 0.15s;
+  z-index: 2;
+}
+.booking-seg:hover { opacity: 1; filter: brightness(1.07); }
+
+/* Shape variants */
+.seg-start {
+  left: 50%;
+  border-radius: 10px 0 0 10px;
+}
+.seg-end {
+  right: 50%;
+  border-radius: 0 10px 10px 0;
+}
+.seg-only {
+  left: 15%; right: 15%;
+  border-radius: 10px;
+}
+.seg-mid { /* full width, no radius */ }
+
+.seg-text {
+  padding: 0 6px;
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.9);
+  font-weight: 500;
+  pointer-events: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Check-in / out badges ──────────────────────────────────────────────── */
+
+.ci-badge {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.5rem;
+  font-weight: 600;
+  z-index: 4;
+  border: 1.5px solid var(--surface);
+  pointer-events: none;
+  color: #fff;
+}
+.ci-in  { background: var(--checkin-color);  left: calc(50% - 8px); }
+.ci-out { background: var(--checkout-color); right: calc(50% - 8px); }
+
+/* ── Week separator ─────────────────────────────────────────────────────── */
+
+.week-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+.week-sep:last-child { display: none; }
+
+/* ── Tooltip ────────────────────────────────────────────────────────────── */
+
+.tooltip {
+  position: fixed;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.68rem;
+  color: var(--text);
+  pointer-events: none;
+  z-index: 1000;
+  display: none;
+  max-width: 210px;
+  line-height: 1.8;
+  box-shadow: var(--shadow-lg);
+}
+.tooltip strong {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.2rem;
+  letter-spacing: 0.02em;
+}
+.tip-row    { color: var(--muted); font-size: 0.63rem; letter-spacing: 0.02em; }
+.tip-in     { color: var(--checkin-color); }
+.tip-out    { color: var(--checkout-color); }
+.tip-nights {
+  margin-top: 0.3rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.63rem;
+}
+
+/* ── Calendar toggle buttons ─────────────────────────────────────────────── */
+
+.cal-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 0.3rem 0.85rem 0.3rem 0.6rem;
+  font-size: 0.64rem;
+  font-weight: 400;
+  font-family: 'Jost', sans-serif;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.cal-toggle .toggle-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--border-strong);
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.cal-toggle .toggle-name {
+  transition: color 0.2s;
+}
+
+.cal-toggle .toggle-check {
+  font-size: 0.55rem;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.2s, transform 0.2s;
+  color: var(--cal-color);
+  margin-left: 1px;
+}
+
+/* Active state */
+.cal-toggle.active {
+  border-color: var(--cal-color);
+  background: var(--surface);
+  color: var(--text);
+}
+.cal-toggle.active .toggle-dot  { background: var(--cal-color); }
+.cal-toggle.active .toggle-check { opacity: 1; transform: scale(1); }
+
+/* Inactive (hidden) state */
+.cal-toggle:not(.active) {
+  opacity: 0.5;
+}
+.cal-toggle:not(.active):hover {
+  opacity: 0.8;
+  border-color: var(--border-strong);
+}
+
+.cal-toggle.error .toggle-dot { background: var(--checkout-color); }
+
+/* ── Month heading with stats ────────────────────────────────────────────── */
+
+.month-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 0.75rem;
+  padding-left: var(--row-label-w);
+  flex-wrap: wrap;
+}
+
+.month-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+/* ── Occupancy stats ─────────────────────────────────────────────────────── */
+
+.month-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  max-width: 340px;
+  padding-top: 0.25rem;
+}
+
+.occ-stat {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.occ-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.58rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.occ-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.occ-bar-wrap {
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.occ-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+  min-width: 2px;
+}
+
+.occ-pct {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  width: 34px;
+  text-align: right;
+  flex-shrink: 0;
+}

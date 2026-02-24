@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stay Timeline</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <h1>Stay Timeline</h1>
+    <span class="subtitle">Airbnb · Next 90 Days</span>
+  </div>
+  <div class="status-bar" id="statusBar">
+    <div class="loading-msg" id="loadingMsg">
+      <span class="spinner"></span>&nbsp;Loading calendars…
+    </div>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">↺ Refresh</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="error-banner" id="errorBanner"></div>
+  <div id="calendarContainer"></div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script src="main.js"></script>
+</body>
+</html>
