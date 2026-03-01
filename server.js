@@ -56,12 +56,12 @@ function fetchUrl(targetUrl) {
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
 
-    // Password protection removed — all routes accessible
+  // Password protection removed — all routes accessible
 
   // CORS headers for all responses
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
     res.writeHead(204);
@@ -71,10 +71,10 @@ const server = http.createServer(async (req, res) => {
 
   // Serve static files (index.html, style.css, main.js)
   const STATIC = {
-    "/":           { file: "index.html", mime: "text/html; charset=utf-8" },
+    "/": { file: "index.html", mime: "text/html; charset=utf-8" },
     "/index.html": { file: "index.html", mime: "text/html; charset=utf-8" },
-    "/style.css":  { file: "style.css",  mime: "text/css; charset=utf-8" },
-    "/main.js":    { file: "main.js",    mime: "application/javascript; charset=utf-8" },
+    "/style.css": { file: "style.css", mime: "text/css; charset=utf-8" },
+    "/main.js": { file: "main.js", mime: "application/javascript; charset=utf-8" },
   };
 
   if (STATIC[parsedUrl.pathname]) {

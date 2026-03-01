@@ -1,32 +1,31 @@
-const COLORS    = ['#c0392b', '#2e6da4', '#27795a'];
-const DAYS_AHEAD = 90;
+const COLORS = ['#3E92CF', '#60C6C9', '#1A558A'];
+const DAYS_AHEAD = 180;
 
 const CALENDARS_META = [
-  { name: "Pardais 205" },
-  { name: "Silchoro 1205" },
-  { name: "Antero A7" },
-  {name: "Antero A7 booking"}
+  { name: "Pardais 205", sources: [0] },
+  { name: "Silchoro 1205", sources: [1] },
+  { name: "Antero A7", sources: [2, 3] }
 ];
 
-let calData  = [null, null, null];
-let visible  = [true, true, true]; // toggle state
+let calData = new Array(CALENDARS_META.length).fill(null);
+let visible = new Array(CALENDARS_META.length).fill(true); // toggle state
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function startOfDay(d) { const r = new Date(d); r.setHours(0,0,0,0); return r; }
-function addDays(d, n)  { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
-function sameDay(a, b)  { return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
-function fmtFull(d)     { return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
-function clamp(v,lo,hi) { return Math.min(Math.max(v,lo),hi); }
+function startOfDay(d) { const r = new Date(d); r.setHours(0, 0, 0, 0); return r; }
+function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
+function fmtFull(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
 
-const WEEKDAYS_SHORT = ['Mo','Tu','We','Th','Fr','Sa','Su'];
-const MONTH_NAMES    = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const WEEKDAYS_SHORT = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 // ─── iCal Parse ─────────────────────────────────────────────────────────────
 
 function parseICS(text) {
   const events = [];
-  text = text.replace(/\r\n[ \t]/g,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  text = text.replace(/\r\n[ \t]/g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   let ev = null;
   for (const rawLine of text.split('\n')) {
     const line = rawLine.trim();
@@ -42,7 +41,7 @@ function parseICS(text) {
       const val = line.slice(ci + 1);
       if (key === 'SUMMARY') ev.summary = val;
       if (key === 'DTSTART') ev.start = parseICSDate(val, keyFull);
-      if (key === 'DTEND')   ev.end   = parseICSDate(val, keyFull);
+      if (key === 'DTEND') ev.end = parseICSDate(val, keyFull);
     }
   }
   return events;
@@ -51,13 +50,13 @@ function parseICS(text) {
 function parseICSDate(val, keyFull) {
   val = val.trim();
   if (/VALUE=DATE/i.test(keyFull) || /^\d{8}$/.test(val)) {
-    const s = val.replace(/^VALUE=DATE:/i,'');
-    return new Date(+s.slice(0,4), +s.slice(4,6)-1, +s.slice(6,8));
+    const s = val.replace(/^VALUE=DATE:/i, '');
+    return new Date(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8));
   }
-  const y=+val.slice(0,4),mo=+val.slice(4,6)-1,d=+val.slice(6,8);
-  const h=+(val.slice(9,11)||0),mi=+(val.slice(11,13)||0),sec=+(val.slice(13,15)||0);
-  if (val.endsWith('Z')) return new Date(Date.UTC(y,mo,d,h,mi,sec));
-  return new Date(y,mo,d,h,mi,sec);
+  const y = +val.slice(0, 4), mo = +val.slice(4, 6) - 1, d = +val.slice(6, 8);
+  const h = +(val.slice(9, 11) || 0), mi = +(val.slice(11, 13) || 0), sec = +(val.slice(13, 15) || 0);
+  if (val.endsWith('Z')) return new Date(Date.UTC(y, mo, d, h, mi, sec));
+  return new Date(y, mo, d, h, mi, sec);
 }
 
 // ─── Occupancy calc ──────────────────────────────────────────────────────────
@@ -77,18 +76,18 @@ function bookedDaysInRange(ci, from, to) {
 }
 
 function occupancyForMonth(ci, year, month) {
-  const today    = startOfDay(new Date());
+  const today = startOfDay(new Date());
   const rangeEnd = addDays(today, DAYS_AHEAD);
-  const mStart   = new Date(year, month, 1);
-  const mEnd     = new Date(year, month + 1, 0); // last day
+  const mStart = new Date(year, month, 1);
+  const mEnd = new Date(year, month + 1, 0); // last day
 
   const from = new Date(Math.max(mStart, today));
-  const to   = addDays(new Date(Math.min(mEnd, rangeEnd)), 1); // exclusive
+  const to = addDays(new Date(Math.min(mEnd, rangeEnd)), 1); // exclusive
 
   if (from >= to) return null;
 
   const totalDays = Math.round((to - from) / 86400000);
-  const booked    = bookedDaysInRange(ci, from, to);
+  const booked = bookedDaysInRange(ci, from, to);
   return Math.round((booked / totalDays) * 100);
 }
 
@@ -114,19 +113,23 @@ window.addEventListener('DOMContentLoaded', () => {
 
 async function loadAll() {
   setStatus('loading');
-  calData = [null, null, null];
+  calData = new Array(CALENDARS_META.length).fill(null);
   const errors = [];
 
   await Promise.all(CALENDARS_META.map(async (meta, idx) => {
     try {
-      const res = await fetch(`/api/ical?id=${idx}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const text = await res.text();
-      if (!text.includes('BEGIN:VCALENDAR')) throw new Error('Not a valid iCal response');
-      calData[idx] = parseICS(text);
+      const allEvents = [];
+      for (const sourceId of meta.sources) {
+        const res = await fetch(`/api/ical?id=${sourceId}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const text = await res.text();
+        if (!text.includes('BEGIN:VCALENDAR')) throw new Error('Not a valid iCal response');
+        allEvents.push(...parseICS(text));
+      }
+      calData[idx] = allEvents;
       setCalStatus(idx, 'loaded');
-    } catch(e) {
-      errors.push(`${CALENDARS_META[idx].name}: ${e.message}`);
+    } catch (e) {
+      errors.push(`${meta.name}: ${e.message}`);
       calData[idx] = [];
       setCalStatus(idx, 'error');
     }
@@ -150,11 +153,11 @@ function setStatus(state) {
 }
 
 function setCalStatus(idx, state) {
-  const bar  = document.getElementById('statusBar');
+  const bar = document.getElementById('statusBar');
   let toggle = document.getElementById(`toggle-${idx}`);
   if (!toggle) {
     toggle = document.createElement('button');
-    toggle.id        = `toggle-${idx}`;
+    toggle.id = `toggle-${idx}`;
     toggle.className = 'cal-toggle active';
     toggle.style.setProperty('--cal-color', COLORS[idx]);
     toggle.innerHTML = `
@@ -175,8 +178,8 @@ function setCalStatus(idx, state) {
 
 function renderCalendar() {
   const container = document.getElementById('calendarContainer');
-  const today     = startOfDay(new Date());
-  const rangeEnd  = addDays(today, DAYS_AHEAD);
+  const today = startOfDay(new Date());
+  const rangeEnd = addDays(today, DAYS_AHEAD);
 
   container.innerHTML = '';
 
@@ -193,8 +196,8 @@ function renderCalendar() {
 }
 
 function buildMonth(monthStart, today, rangeEnd) {
-  const year     = monthStart.getFullYear();
-  const month    = monthStart.getMonth();
+  const year = monthStart.getFullYear();
+  const month = monthStart.getMonth();
   const monthEnd = new Date(year, month + 1, 0);
 
   const section = document.createElement('div');
@@ -250,118 +253,108 @@ function buildMonth(monthStart, today, rangeEnd) {
   const card = document.createElement('div');
   card.className = 'month-card';
 
-  // Day-of-week header
-  const dowRow = document.createElement('div');
-  dowRow.className = 'dow-header';
-  dowRow.innerHTML = `<div class="row-label-cell"></div>`;
-  for (const d of WEEKDAYS_SHORT) {
-    const cell = document.createElement('div');
-    cell.className = 'dow-cell';
-    cell.textContent = d;
-    dowRow.appendChild(cell);
-  }
-  card.appendChild(dowRow);
+  // Count visible calendars for CSS Grid
+  const visibleCount = visible.filter(v => v).length;
+  // Fallback to 1 if none visible to avoid breaking grid
+  card.style.setProperty('--cal-count', Math.max(1, visibleCount));
 
-  // Build weeks
+  // Calendar Header Row (Top of columns)
+  const headerRow = document.createElement('div');
+  headerRow.className = 'dow-header';
+  headerRow.innerHTML = `<div class="cal-header-cell">DATE</div>`;
+  CALENDARS_META.forEach((meta, ci) => {
+    if (!visible[ci]) return;
+    const th = document.createElement('div');
+    th.className = 'cal-header-cell';
+    th.innerHTML = `<span class="label-dot" style="background:${COLORS[ci]}"></span>${meta.name}`;
+    headerRow.appendChild(th);
+  });
+  card.appendChild(headerRow);
+
+  // Build days vertically
   const firstDay = new Date(year, month, 1);
-  const dowFirst = (firstDay.getDay() + 6) % 7;
-  let weekStart  = addDays(firstDay, -dowFirst);
+  let currentDay = new Date(firstDay);
 
-  while (weekStart <= monthEnd) {
-    const weekEnd = addDays(weekStart, 6);
-    if (weekEnd < today || weekStart > rangeEnd || weekEnd < new Date(year, month, 1)) {
-      weekStart = addDays(weekStart, 7);
-      continue;
+  while (currentDay <= monthEnd) {
+    if (currentDay < today || currentDay > rangeEnd) {
+      currentDay = addDays(currentDay, 1);
+      continue; // Skip past/out-of-range days
     }
 
-    // Date row
-    const dateRow = document.createElement('div');
-    dateRow.className = 'week-date-row';
-    dateRow.innerHTML = `<div class="row-label-cell"></div>`;
-    for (let d = 0; d < 7; d++) {
-      const day  = addDays(weekStart, d);
-      const cell = document.createElement('div');
-      cell.className = 'date-cell' +
-        (sameDay(day, today)       ? ' is-today'     : '') +
-        (day.getMonth() !== month  ? ' out-of-month' : '') +
-        (day < today || day > rangeEnd ? ' out-of-range' : '');
-      cell.textContent = day.getDate();
-      dateRow.appendChild(cell);
-    }
-    card.appendChild(dateRow);
+    const dayNext = addDays(currentDay, 1);
 
-    // Booking rows — only for visible calendars
+    // Create grid row for this day
+    const row = document.createElement('div');
+    row.className = 'booking-row';
+
+    // Day Label Cell (Leftmost column)
+    const dateCell = document.createElement('div');
+    dateCell.className = 'date-cell' + (sameDay(currentDay, today) ? ' is-today' : '');
+    const dowStr = WEEKDAYS_SHORT[(currentDay.getDay() + 6) % 7];
+    dateCell.innerHTML = `
+      ${currentDay.getDate()}
+      <span class="dow-label">${dowStr}</span>
+    `;
+    row.appendChild(dateCell);
+
+    // Build booking cells for each visible calendar (Columns)
     CALENDARS_META.forEach((meta, ci) => {
       if (!visible[ci]) return;
 
-      const row = document.createElement('div');
-      row.className = 'booking-row';
+      const cell = document.createElement('div');
+      cell.className = 'booking-cell';
 
-      const label = document.createElement('div');
-      label.className = 'row-label-cell row-label';
-      label.innerHTML = `<span class="label-dot" style="background:${COLORS[ci]}"></span>${meta.name}`;
-      row.appendChild(label);
+      // Find events that overlap this day
+      for (const ev of (calData[ci] || [])) {
+        const evStart = startOfDay(ev.start);
+        const evEnd = startOfDay(ev.end);
 
-      for (let d = 0; d < 7; d++) {
-        const day     = addDays(weekStart, d);
-        const dayNext = addDays(day, 1);
-        const outOfRange = day < today || day > rangeEnd;
-        const outOfMonth = day.getMonth() !== month;
+        // Skip if event doesn't cover this day
+        if (evEnd <= currentDay || evStart >= dayNext) continue;
 
-        const cell = document.createElement('div');
-        cell.className = 'booking-cell' + (outOfRange || outOfMonth ? ' dimmed' : '');
+        const startsHere = sameDay(evStart, currentDay);
+        const endsHere = sameDay(evEnd, dayNext) || sameDay(evEnd, currentDay);
 
-        for (const ev of (calData[ci] || [])) {
-          const evStart = startOfDay(ev.start);
-          const evEnd   = startOfDay(ev.end);
-          if (evEnd <= day || evStart >= dayNext) continue;
+        let segType = 'mid';
+        if (startsHere && endsHere) segType = 'only';
+        else if (startsHere) segType = 'start';
+        else if (endsHere) segType = 'end';
 
-          const startsHere = sameDay(evStart, day);
-          const endsHere   = sameDay(evEnd, dayNext) || sameDay(evEnd, day);
-          let segType = 'mid';
-          if (startsHere && endsHere) segType = 'only';
-          else if (startsHere)        segType = 'start';
-          else if (endsHere)          segType = 'end';
+        const seg = document.createElement('div');
+        seg.className = `booking-seg seg-${segType}`;
+        seg.style.setProperty('--bar-color', COLORS[ci]);
 
-          const seg = document.createElement('div');
-          seg.className = `booking-seg seg-${segType}`;
-          seg.style.setProperty('--bar-color', COLORS[ci]);
-
-          if (segType === 'start' || segType === 'only') {
-            const lbl = document.createElement('span');
-            lbl.className   = 'seg-text';
-            lbl.textContent = ev.summary || '';
-            seg.appendChild(lbl);
-          }
-
-          seg.addEventListener('mouseenter', e => showTip(e, ev, ci));
-          seg.addEventListener('mousemove', moveTip);
-          seg.addEventListener('mouseleave', hideTip);
-          cell.appendChild(seg);
-
-          if (startsHere) {
-            const b = document.createElement('div');
-            b.className = 'ci-badge ci-in';
-            b.textContent = '↓';
-            cell.appendChild(b);
-          }
-          if (endsHere && segType !== 'start') {
-            const b = document.createElement('div');
-            b.className = 'ci-badge ci-out';
-            b.textContent = '↑';
-            cell.appendChild(b);
-          }
+        // Add text label for start/only blocks
+        if (segType === 'start' || segType === 'only') {
+          const lbl = document.createElement('span');
+          lbl.className = 'seg-text';
+          lbl.textContent = ev.summary || '';
+          seg.appendChild(lbl);
         }
-        row.appendChild(cell);
+
+        seg.addEventListener('mouseenter', e => showTip(e, ev, ci));
+        seg.addEventListener('mousemove', moveTip);
+        seg.addEventListener('mouseleave', hideTip);
+        cell.appendChild(seg);
+
+        if (startsHere) {
+          const b = document.createElement('div');
+          b.className = 'ci-badge ci-in';
+          b.textContent = '↓';
+          cell.appendChild(b);
+        }
+        if (endsHere && segType !== 'start') {
+          const b = document.createElement('div');
+          b.className = 'ci-badge ci-out';
+          b.textContent = '↑';
+          cell.appendChild(b);
+        }
       }
-      card.appendChild(row);
+      row.appendChild(cell);
     });
 
-    const sep = document.createElement('div');
-    sep.className = 'week-sep';
-    card.appendChild(sep);
-
-    weekStart = addDays(weekStart, 7);
+    card.appendChild(row);
+    currentDay = addDays(currentDay, 1);
   }
 
   section.appendChild(card);
@@ -385,7 +378,7 @@ function showTip(e, ev, ci) {
 }
 function moveTip(e) {
   tooltip.style.left = (e.clientX + 14) + 'px';
-  tooltip.style.top  = (e.clientY + 14) + 'px';
+  tooltip.style.top = (e.clientY + 14) + 'px';
 }
 function hideTip() { tooltip.style.display = 'none'; }
 
