@@ -5,6 +5,7 @@ const CALENDARS_META = [
   { name: "Pardais 205" },
   { name: "Silchoro 1205" },
   { name: "Antero A7" },
+  {name: "Antero A7 booking"}
 ];
 
 let calData  = [null, null, null];
@@ -387,5 +388,6 @@ function moveTip(e) {
   tooltip.style.top  = (e.clientY + 14) + 'px';
 }
 function hideTip() { tooltip.style.display = 'none'; }
+
 
 loadAll();
