@@ -23,6 +23,10 @@ const CALENDARS = [
     name: "Antero A7",
     url: "https://www.airbnb.co.uk/calendar/ical/914217783547257427.ics?t=bfe3347170624f688de258fc9e81590c",
   },
+  {
+    name: "Antero A7 booking",
+    url: "https://ical.booking.com/v1/export?t=1e498d5c-9764-48b7-9a24-c4a2bb122a81"
+  }
 ];
 
 function fetchUrl(targetUrl) {
