@@ -11,6 +11,10 @@
   --today-accent: #F4A759;
   --checkin-color: #60C6C9;
   --checkout-color: #F4A759;
+  --changeover-base-fill: #FFE45C;
+  --changeover-cross-fill: rgba(255, 149, 0, 0.45);
+  --changeover-accent-fill: rgba(255, 208, 92, 0.34);
+  --changeover-depth-fill: rgba(146, 83, 0, 0.15);
   --shadow: 0 2px 16px rgba(50, 30, 55, 0.06);
   --shadow-lg: 0 8px 40px rgba(50, 30, 55, 0.10);
   --row-label-w: 110px;
@@ -174,6 +178,32 @@ h1 {
   background: #fff;
   border-radius: 18px;
   box-shadow: none;
+}
+
+.calendar-actions {
+  margin-top: 1.2rem;
+  display: flex;
+  justify-content: center;
+}
+
+.load-more-btn {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.45rem 1.05rem;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.load-more-btn:hover {
+  border-color: var(--text);
+  color: var(--text);
+  transform: translateY(-1px);
 }
 
 /* ── Legend ─────────────────────────────────────────────────────────────── */
@@ -357,7 +387,7 @@ h1 {
 /* ── Booking row ────────────────────────────────────────────────────────── */
 
 .booking-row {
-  min-height: 40px;
+  min-height: 48px;
   align-items: stretch;
 }
 
@@ -373,6 +403,40 @@ h1 {
   align-items: center;
   border-left: 1px solid var(--border);
   padding: 0.2rem;
+  overflow: hidden;
+}
+
+.booking-cell.is-changeover {
+  background:
+    linear-gradient(0deg, var(--changeover-base-fill), var(--changeover-base-fill)),
+    repeating-linear-gradient(
+      45deg,
+      transparent 0 8px,
+      var(--changeover-cross-fill) 8px 11px,
+      transparent 11px 22px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent 0 8px,
+      var(--changeover-cross-fill) 8px 11px,
+      transparent 11px 22px
+    );
+}
+
+.booking-cell.is-changeover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      transparent 0 12px,
+      var(--changeover-accent-fill) 12px 15px,
+      transparent 15px 28px
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), var(--changeover-depth-fill));
+  pointer-events: none;
+  z-index: 3;
 }
 
 .booking-cell.dimmed {
@@ -382,10 +446,9 @@ h1 {
 /* ── Booking segment block ──────────────────────────────────────────────── */
 
 .booking-seg {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 32px;
+  position: absolute;
+  left: 4px;
+  right: 4px;
   background: var(--bar-color);
   opacity: 0.82;
   display: flex;
@@ -406,20 +469,31 @@ h1 {
 /* Shape variants - now block-based instead of horizontal position-based */
 .seg-start {
   border-radius: 6px 6px 0 0;
-  margin-top: auto;
-  height: 80%;
+  bottom: 0;
+  height: 50%;
 }
 
 .seg-end {
   border-radius: 0 0 6px 6px;
-  margin-bottom: auto;
-  height: 80%;
+  top: 0;
+  height: 50%;
+}
+
+.seg-checkout-marker {
+  opacity: 0.5;
+  z-index: 1;
+}
+
+.seg-mid {
+  top: 0;
+  bottom: 0;
+  height: 100%;
 }
 
 .seg-only {
   border-radius: 6px;
-  height: 80%;
-  margin: auto 0;
+  top: 25%;
+  height: 50%;
 }
 
 .seg-text {
@@ -437,7 +511,6 @@ h1 {
 
 .ci-badge {
   position: absolute;
-  top: 4px;
   right: 4px;
   width: 14px;
   height: 14px;
@@ -455,10 +528,13 @@ h1 {
 
 .ci-in {
   background: var(--checkin-color);
+  top: auto;
+  bottom: 4px;
 }
 
 .ci-out {
   background: var(--checkout-color);
+  top: 4px;
 }
 
 /* ── Week separator ─────────────────────────────────────────────────────── */
@@ -613,7 +689,6 @@ h1 {
   flex-shrink: 1;
   position: relative;
   margin-bottom: 0.5rem;
-}
 }
 
 .month-labels {

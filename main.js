@@ -1,5 +1,7 @@
 const COLORS = ['#3E92CF', '#60C6C9', '#1A558A'];
-const DAYS_AHEAD = 180;
+const MAX_DAYS_AHEAD = 180;
+const INITIAL_VISIBLE_MONTHS = 2;
+const LOAD_MORE_MONTHS = 1;
 
 const CALENDARS_META = [
   { name: "Pardais 205", sources: [0] },
@@ -9,6 +11,7 @@ const CALENDARS_META = [
 
 let calData = new Array(CALENDARS_META.length).fill(null);
 let visible = new Array(CALENDARS_META.length).fill(true); // toggle state
+let visibleMonths = INITIAL_VISIBLE_MONTHS;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -17,6 +20,19 @@ function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); retu
 function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
 function fmtFull(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
 function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
+function bookingNights(ev) { return Math.max(1, Math.round((startOfDay(ev.end) - startOfDay(ev.start)) / 86400000)); }
+function nightsLabel(nights) { return `${nights} night${nights !== 1 ? 's' : ''}`; }
+function bookingTitle(ev) {
+  const summary = (ev.summary || '').trim();
+  if (!summary) return nightsLabel(bookingNights(ev));
+  if (/\breserv(?:ed|ation)\b/i.test(summary)) return nightsLabel(bookingNights(ev));
+  return summary;
+}
+function calcRangeEnd(today, monthWindow) {
+  const monthWindowEnd = new Date(today.getFullYear(), today.getMonth() + monthWindow, 0);
+  const hardLimit = addDays(today, MAX_DAYS_AHEAD);
+  return new Date(Math.min(monthWindowEnd, hardLimit));
+}
 
 const WEEKDAYS_SHORT = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -77,7 +93,7 @@ function bookedDaysInRange(ci, from, to) {
 
 function occupancyForMonth(ci, year, month) {
   const today = startOfDay(new Date());
-  const rangeEnd = addDays(today, DAYS_AHEAD);
+  const rangeEnd = addDays(today, MAX_DAYS_AHEAD);
   const mStart = new Date(year, month, 1);
   const mEnd = new Date(year, month + 1, 0); // last day
 
@@ -179,7 +195,8 @@ function setCalStatus(idx, state) {
 function renderCalendar() {
   const container = document.getElementById('calendarContainer');
   const today = startOfDay(new Date());
-  const rangeEnd = addDays(today, DAYS_AHEAD);
+  const rangeEnd = calcRangeEnd(today, visibleMonths);
+  const hardLimit = addDays(today, MAX_DAYS_AHEAD);
 
   container.innerHTML = '';
 
@@ -193,6 +210,38 @@ function renderCalendar() {
   for (const monthStart of months) {
     container.appendChild(buildMonth(monthStart, today, rangeEnd));
   }
+
+  syncLoadMoreButton(rangeEnd, hardLimit);
+}
+
+function loadMoreMonths() {
+  visibleMonths += LOAD_MORE_MONTHS;
+  renderCalendar();
+}
+
+function syncLoadMoreButton(rangeEnd, hardLimit) {
+  const btn = document.getElementById('loadMoreBtn');
+  if (!btn) return;
+  btn.style.display = rangeEnd < hardLimit ? 'inline-flex' : 'none';
+}
+
+function addDayBadge(cell, className, text) {
+  const badge = document.createElement('div');
+  badge.className = `ci-badge ${className}`;
+  badge.textContent = text;
+  cell.appendChild(badge);
+}
+
+function addCheckoutMarker(cell, ev, ci) {
+  const marker = document.createElement('div');
+  marker.className = 'booking-seg seg-end seg-checkout-marker';
+  marker.style.setProperty('--bar-color', COLORS[ci]);
+  if (ev) {
+    marker.addEventListener('mouseenter', e => showTip(e, ev, ci));
+    marker.addEventListener('mousemove', moveTip);
+    marker.addEventListener('mouseleave', hideTip);
+  }
+  cell.appendChild(marker);
 }
 
 function buildMonth(monthStart, today, rangeEnd) {
@@ -303,22 +352,29 @@ function buildMonth(monthStart, today, rangeEnd) {
 
       const cell = document.createElement('div');
       cell.className = 'booking-cell';
+      let hasCheckIn = false;
+      let hasCheckOut = false;
+      let firstCheckOut = null;
 
       // Find events that overlap this day
       for (const ev of (calData[ci] || [])) {
         const evStart = startOfDay(ev.start);
         const evEnd = startOfDay(ev.end);
+        if (sameDay(evStart, currentDay)) hasCheckIn = true;
+        if (sameDay(evEnd, currentDay)) {
+          hasCheckOut = true;
+          if (!firstCheckOut) firstCheckOut = ev;
+        }
 
         // Skip if event doesn't cover this day
         if (evEnd <= currentDay || evStart >= dayNext) continue;
 
         const startsHere = sameDay(evStart, currentDay);
-        const endsHere = sameDay(evEnd, dayNext) || sameDay(evEnd, currentDay);
+        const isSingleNight = startsHere && sameDay(evEnd, dayNext);
 
         let segType = 'mid';
-        if (startsHere && endsHere) segType = 'only';
+        if (isSingleNight) segType = 'only';
         else if (startsHere) segType = 'start';
-        else if (endsHere) segType = 'end';
 
         const seg = document.createElement('div');
         seg.className = `booking-seg seg-${segType}`;
@@ -328,7 +384,7 @@ function buildMonth(monthStart, today, rangeEnd) {
         if (segType === 'start' || segType === 'only') {
           const lbl = document.createElement('span');
           lbl.className = 'seg-text';
-          lbl.textContent = ev.summary || '';
+          lbl.textContent = bookingTitle(ev);
           seg.appendChild(lbl);
         }
 
@@ -336,19 +392,14 @@ function buildMonth(monthStart, today, rangeEnd) {
         seg.addEventListener('mousemove', moveTip);
         seg.addEventListener('mouseleave', hideTip);
         cell.appendChild(seg);
+      }
 
-        if (startsHere) {
-          const b = document.createElement('div');
-          b.className = 'ci-badge ci-in';
-          b.textContent = '↓';
-          cell.appendChild(b);
-        }
-        if (endsHere && segType !== 'start') {
-          const b = document.createElement('div');
-          b.className = 'ci-badge ci-out';
-          b.textContent = '↑';
-          cell.appendChild(b);
-        }
+      if (hasCheckOut) addCheckoutMarker(cell, firstCheckOut, ci);
+      if (hasCheckIn) addDayBadge(cell, 'ci-in', '↓');
+      if (hasCheckOut) addDayBadge(cell, 'ci-out', '↑');
+
+      if (hasCheckIn && hasCheckOut) {
+        cell.classList.add('is-changeover');
       }
       row.appendChild(cell);
     });
@@ -366,12 +417,12 @@ function buildMonth(monthStart, today, rangeEnd) {
 const tooltip = document.getElementById('tooltip');
 
 function showTip(e, ev, ci) {
-  const nights = Math.round((startOfDay(ev.end) - startOfDay(ev.start)) / 86400000);
+  const nights = bookingNights(ev);
   tooltip.innerHTML = `
-    <strong>${ev.summary || 'Booking'}</strong>
+    <strong>${bookingTitle(ev)}</strong>
     <div class="tip-row tip-in">↓ Check-in &ensp;${fmtFull(ev.start)}</div>
     <div class="tip-row tip-out">↑ Check-out  ${fmtFull(ev.end)}</div>
-    <div class="tip-nights">${nights} night${nights !== 1 ? 's' : ''}</div>`;
+    <div class="tip-nights">${nightsLabel(nights)}</div>`;
   tooltip.style.borderColor = COLORS[ci];
   tooltip.style.display = 'block';
   moveTip(e);
@@ -384,3 +435,4 @@ function hideTip() { tooltip.style.display = 'none'; }
 
 
 loadAll();
+window.loadMoreMonths = loadMoreMonths;

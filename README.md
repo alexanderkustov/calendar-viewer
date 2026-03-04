@@ -2,7 +2,7 @@
 
 https://calendar-viewer-production.up.railway.app/
 
-A lightweight Node.js + vanilla JavaScript web app that shows iCal availability across multiple properties in a single 180-day timeline view.
+A lightweight Node.js + vanilla JavaScript web app that shows iCal availability across multiple properties in a timeline view.
 
 ## Features
 
@@ -11,7 +11,7 @@ A lightweight Node.js + vanilla JavaScript web app that shows iCal availability 
 - Shows nightly Airbnb base prices on free days for the next 30 days.
 - Shows monthly occupancy percentages per property.
 - Lets you toggle each property on/off in the UI.
-- Renders a rolling 180-day forward-looking view.
+- Shows the current month + next month by default, with a **Load more** button for additional months.
 
 ## Project structure
 
@@ -40,7 +40,8 @@ Then open:
 - **Source feeds**: edit the `CALENDARS` array in `server.js`.
 - **Pricing listings**: edit the `PRICE_PROPERTIES` array in `server.js` (one Airbnb listing per property ID).
 - **Property grouping**: edit `CALENDARS_META` in `main.js` to control how one or more source feeds map to a single property row.
-- **Time horizon**: edit `DAYS_AHEAD` in `main.js` (currently `180`).
+- **Maximum time horizon**: edit `MAX_DAYS_AHEAD` in `main.js` (currently `180`).
+- **Initial months shown**: edit `INITIAL_VISIBLE_MONTHS` in `main.js` (currently `2`).
 - **Pricing horizon**: edit `PRICE_DAYS_AHEAD` in `main.js` (currently `30`).
 
 ## API endpoints
