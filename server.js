@@ -26,6 +26,14 @@ const CALENDARS = [
   {
     name: "Antero A7 booking",
     url: "https://ical.booking.com/v1/export?t=1e498d5c-9764-48b7-9a24-c4a2bb122a81"
+  },
+  {
+    name: "portimao J",
+    url: "https://www.airbnb.co.uk/calendar/ical/1635428772732094156.ics?t=f7047724c87e4449917c247332bf465f"
+  },
+  {
+    name: "portimao G",
+    url: "https://www.airbnb.co.uk/calendar/ical/1635425171512419857.ics?t=88790fa90b9c4231bab4773dd37fae23"
   }
 ];
 

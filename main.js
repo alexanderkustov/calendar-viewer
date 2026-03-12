@@ -1,4 +1,4 @@
-const COLORS = ['#3E92CF', '#60C6C9', '#1A558A'];
+const COLORS = ['#3E92CF', '#60C6C9', '#1A558A', '#9B51E0', '#27AE60'];
 const MAX_DAYS_AHEAD = 180;
 const INITIAL_VISIBLE_MONTHS = 2;
 const LOAD_MORE_MONTHS = 1;
@@ -6,7 +6,9 @@ const LOAD_MORE_MONTHS = 1;
 const CALENDARS_META = [
   { name: "Pardais 205", sources: [0] },
   { name: "Silchoro 1205", sources: [1] },
-  { name: "Antero A7", sources: [2, 3] }
+  { name: "Antero A7", sources: [2, 3] },
+  { name: "portimao J", sources: [4] },
+  { name: "portimao G", sources: [5] }
 ];
 
 let calData = new Array(CALENDARS_META.length).fill(null);
