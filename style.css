@@ -52,6 +52,13 @@ body {
   z-index: 50;
 }
 
+.topbar-inner {
+  width: min(1400px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .brand {
   display: flex;
   flex-direction: column;
@@ -81,8 +88,51 @@ h1 {
 .status-bar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.toggle-group {
+  display: flex;
+  align-items: center;
   gap: 0.65rem;
   flex-wrap: wrap;
+  flex: 1 1 auto;
+}
+
+.location-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.location-tab {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 0.55rem 1.3rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: 'Jost', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: border-color 0.2s, color 0.2s, background 0.2s, transform 0.2s;
+}
+
+.location-tab:hover {
+  border-color: var(--text);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.location-tab.active {
+  background: var(--text);
+  border-color: var(--text);
+  color: #fff;
 }
 
 .cal-pill {
@@ -184,6 +234,19 @@ h1 {
   margin-top: 1.2rem;
   display: flex;
   justify-content: center;
+}
+
+.empty-state {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--muted);
+  font-family: 'Jost', sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  padding: 1rem 1.2rem;
+  text-align: center;
+  text-transform: uppercase;
 }
 
 .load-more-btn {
@@ -618,6 +681,14 @@ h1 {
   user-select: none;
 }
 
+.cal-toggle .toggle-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.08rem;
+  min-width: 0;
+}
+
 .cal-toggle .toggle-dot {
   width: 8px;
   height: 8px;
@@ -628,7 +699,16 @@ h1 {
 }
 
 .cal-toggle .toggle-name {
+  font-weight: 500;
   transition: color 0.2s;
+}
+
+.cal-toggle .toggle-meta {
+  font-size: 0.56rem;
+  letter-spacing: 0.03em;
+  text-transform: none;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 .cal-toggle .toggle-check {
@@ -644,6 +724,10 @@ h1 {
 .cal-toggle.active {
   border-color: var(--cal-color);
   background: var(--surface);
+  color: var(--text);
+}
+
+.cal-toggle.active .toggle-meta {
   color: var(--text);
 }
 
@@ -668,6 +752,10 @@ h1 {
 
 .cal-toggle.error .toggle-dot {
   background: var(--checkout-color);
+}
+
+.cal-toggle.error .toggle-meta {
+  color: var(--checkout-color);
 }
 
 /* ── Month heading with stats ────────────────────────────────────────────── */
@@ -786,4 +874,19 @@ h1 {
   width: 34px;
   text-align: right;
   flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .topbar,
+  .main {
+    padding: 1.35rem;
+  }
+
+  .status-bar {
+    justify-content: center;
+  }
+
+  .toggle-group {
+    justify-content: center;
+  }
 }

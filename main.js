@@ -2,17 +2,23 @@ const COLORS = ['#3E92CF', '#60C6C9', '#1A558A', '#9B51E0', '#27AE60'];
 const MAX_DAYS_AHEAD = 180;
 const INITIAL_VISIBLE_MONTHS = 2;
 const LOAD_MORE_MONTHS = 1;
+const LOCATION_TABS = [
+  { id: 'albufeira', label: 'Albufeira' },
+  { id: 'portimao', label: 'Portimao' }
+];
 
 const CALENDARS_META = [
-  { name: "Pardais 205", sources: [0] },
-  { name: "Silchoro 1205", sources: [1] },
-  { name: "Antero A7", sources: [2, 3] },
-  { name: "portimao J 138", sources: [4] },
-  { name: "portimao G 347", sources: [5] }
+  { name: "Pardais 205", location: 'albufeira', sources: [0] },
+  { name: "Silchoro 1205", location: 'albufeira', sources: [1] },
+  { name: "Antero A7", location: 'albufeira', sources: [2, 3] },
+  { name: "Portimao J138", location: 'portimao', sources: [4] },
+  { name: "Portimao G137", location: 'portimao', sources: [5] }
 ];
 
 let calData = new Array(CALENDARS_META.length).fill(null);
+let calStatus = new Array(CALENDARS_META.length).fill('idle');
 let visible = new Array(CALENDARS_META.length).fill(true); // toggle state
+let activeLocation = LOCATION_TABS[0].id;
 let visibleMonths = INITIAL_VISIBLE_MONTHS;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -30,6 +36,16 @@ function bookingTitle(ev) {
   if (/\breserv(?:ed|ation)\b/i.test(summary)) return nightsLabel(bookingNights(ev));
   return summary;
 }
+function nextCheckoutDate(ci, from = startOfDay(new Date())) {
+  const events = calData[ci] || [];
+  let nextDate = null;
+  for (const ev of events) {
+    const checkout = startOfDay(ev.end);
+    if (checkout < from) continue;
+    if (!nextDate || checkout < nextDate) nextDate = checkout;
+  }
+  return nextDate;
+}
 function calcRangeEnd(today, monthWindow) {
   const monthWindowEnd = new Date(today.getFullYear(), today.getMonth() + monthWindow, 0);
   const hardLimit = addDays(today, MAX_DAYS_AHEAD);
@@ -38,6 +54,29 @@ function calcRangeEnd(today, monthWindow) {
 
 const WEEKDAYS_SHORT = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+function calendarsForLocation(locationId = activeLocation) {
+  return CALENDARS_META
+    .map((meta, idx) => ({ meta, idx }))
+    .filter(({ meta }) => meta.location === locationId);
+}
+
+function visibleCalendarsForLocation(locationId = activeLocation) {
+  return calendarsForLocation(locationId).filter(({ idx }) => visible[idx]);
+}
+
+function activeLocationLabel() {
+  return LOCATION_TABS.find((location) => location.id === activeLocation)?.label || activeLocation;
+}
+
+function nextCheckoutLabel(idx) {
+  if (calStatus[idx] === 'loading') return 'Next check-out: loading...';
+  if (calStatus[idx] === 'error') return 'Next check-out unavailable';
+
+  const nextDate = nextCheckoutDate(idx);
+  if (!nextDate) return 'No upcoming check-out';
+  return `Next check-out: ${fmtFull(nextDate)}`;
+}
 
 // ─── iCal Parse ─────────────────────────────────────────────────────────────
 
@@ -126,12 +165,16 @@ function submitPassword() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Password modal removed
+  renderControls();
+  loadAll();
 });
 
 async function loadAll() {
   setStatus('loading');
   calData = new Array(CALENDARS_META.length).fill(null);
+  calStatus = new Array(CALENDARS_META.length).fill('loading');
+  document.getElementById('errorBanner').style.display = 'none';
+  renderControls();
   const errors = [];
 
   await Promise.all(CALENDARS_META.map(async (meta, idx) => {
@@ -171,25 +214,63 @@ function setStatus(state) {
 }
 
 function setCalStatus(idx, state) {
-  const bar = document.getElementById('statusBar');
-  let toggle = document.getElementById(`toggle-${idx}`);
-  if (!toggle) {
-    toggle = document.createElement('button');
+  calStatus[idx] = state;
+  renderControls();
+}
+
+function renderControls() {
+  renderTabs();
+  renderToggles();
+}
+
+function renderTabs() {
+  const tabs = document.getElementById('locationTabs');
+  if (!tabs) return;
+
+  tabs.innerHTML = '';
+  LOCATION_TABS.forEach((location) => {
+    const tab = document.createElement('button');
+    tab.type = 'button';
+    tab.className = `location-tab${location.id === activeLocation ? ' active' : ''}`;
+    tab.setAttribute('role', 'tab');
+    tab.setAttribute('aria-selected', String(location.id === activeLocation));
+    tab.textContent = location.label;
+    tab.addEventListener('click', () => {
+      if (location.id === activeLocation) return;
+      activeLocation = location.id;
+      renderControls();
+      renderCalendar();
+    });
+    tabs.appendChild(tab);
+  });
+}
+
+function renderToggles() {
+  const group = document.getElementById('toggleGroup');
+  if (!group) return;
+
+  group.innerHTML = '';
+  calendarsForLocation().forEach(({ meta, idx }) => {
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
     toggle.id = `toggle-${idx}`;
-    toggle.className = 'cal-toggle active';
+    toggle.className = `cal-toggle${visible[idx] ? ' active' : ''}`;
     toggle.style.setProperty('--cal-color', COLORS[idx]);
+    if (calStatus[idx] === 'error') toggle.classList.add('error');
     toggle.innerHTML = `
       <span class="toggle-dot"></span>
-      <span class="toggle-name">${CALENDARS_META[idx].name}</span>
+      <span class="toggle-copy">
+        <span class="toggle-name">${meta.name}</span>
+        <span class="toggle-meta">${nextCheckoutLabel(idx)}</span>
+      </span>
       <span class="toggle-check">✓</span>`;
     toggle.addEventListener('click', () => {
       visible[idx] = !visible[idx];
-      toggle.classList.toggle('active', visible[idx]);
+      renderToggles();
       renderCalendar();
     });
-    bar.insertBefore(toggle, document.getElementById('refreshBtn'));
-  }
-  if (state === 'error') toggle.classList.add('error');
+    group.appendChild(toggle);
+  });
 }
 
 // ─── Render ──────────────────────────────────────────────────────────────────
@@ -199,8 +280,18 @@ function renderCalendar() {
   const today = startOfDay(new Date());
   const rangeEnd = calcRangeEnd(today, visibleMonths);
   const hardLimit = addDays(today, MAX_DAYS_AHEAD);
+  const activeCalendars = visibleCalendarsForLocation();
 
   container.innerHTML = '';
+
+  if (!activeCalendars.length) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'empty-state';
+    emptyState.textContent = `No calendars selected for ${activeLocationLabel()}.`;
+    container.appendChild(emptyState);
+    syncLoadMoreButton(rangeEnd, hardLimit);
+    return;
+  }
 
   const months = [];
   let cursor = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -210,7 +301,7 @@ function renderCalendar() {
   }
 
   for (const monthStart of months) {
-    container.appendChild(buildMonth(monthStart, today, rangeEnd));
+    container.appendChild(buildMonth(monthStart, today, rangeEnd, activeCalendars));
   }
 
   syncLoadMoreButton(rangeEnd, hardLimit);
@@ -246,7 +337,7 @@ function addCheckoutMarker(cell, ev, ci) {
   cell.appendChild(marker);
 }
 
-function buildMonth(monthStart, today, rangeEnd) {
+function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
   const year = monthStart.getFullYear();
   const month = monthStart.getMonth();
   const monthEnd = new Date(year, month + 1, 0);
@@ -274,8 +365,7 @@ function buildMonth(monthStart, today, rangeEnd) {
   const statsEl = document.createElement('div');
   statsEl.className = 'month-stats';
 
-  CALENDARS_META.forEach((meta, ci) => {
-    if (!visible[ci]) return;
+  activeCalendars.forEach(({ meta, idx: ci }) => {
     const pct = occupancyForMonth(ci, year, month);
     if (pct === null) return;
 
@@ -305,7 +395,7 @@ function buildMonth(monthStart, today, rangeEnd) {
   card.className = 'month-card';
 
   // Count visible calendars for CSS Grid
-  const visibleCount = visible.filter(v => v).length;
+  const visibleCount = activeCalendars.length;
   // Fallback to 1 if none visible to avoid breaking grid
   card.style.setProperty('--cal-count', Math.max(1, visibleCount));
 
@@ -313,8 +403,7 @@ function buildMonth(monthStart, today, rangeEnd) {
   const headerRow = document.createElement('div');
   headerRow.className = 'dow-header';
   headerRow.innerHTML = `<div class="cal-header-cell">DATE</div>`;
-  CALENDARS_META.forEach((meta, ci) => {
-    if (!visible[ci]) return;
+  activeCalendars.forEach(({ meta, idx: ci }) => {
     const th = document.createElement('div');
     th.className = 'cal-header-cell';
     th.innerHTML = `<span class="label-dot" style="background:${COLORS[ci]}"></span>${meta.name}`;
@@ -349,8 +438,7 @@ function buildMonth(monthStart, today, rangeEnd) {
     row.appendChild(dateCell);
 
     // Build booking cells for each visible calendar (Columns)
-    CALENDARS_META.forEach((meta, ci) => {
-      if (!visible[ci]) return;
+    activeCalendars.forEach(({ idx: ci }) => {
 
       const cell = document.createElement('div');
       cell.className = 'booking-cell';
@@ -435,6 +523,4 @@ function moveTip(e) {
 }
 function hideTip() { tooltip.style.display = 'none'; }
 
-
-loadAll();
 window.loadMoreMonths = loadMoreMonths;

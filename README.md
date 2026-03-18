@@ -6,16 +6,17 @@ A lightweight Node.js + vanilla JavaScript web app that shows iCal availability 
 
 ## Features
 
-- Aggregates four iCal feeds (Airbnb + Booking.com) through a local proxy (`/api/ical`) to avoid browser CORS issues.
+- Aggregates six iCal feeds (Airbnb + Booking.com) through a local proxy (`/api/ical`) to avoid browser CORS issues.
 - Displays bookings in a month-by-month timeline.
-- Shows nightly Airbnb base prices on free days for the next 30 days.
 - Shows monthly occupancy percentages per property.
+- Splits the view into **Albufeira** and **Portimao** tabs, defaulting to **Albufeira**.
+- Shows the next check-out date for each property in text form in the top controls.
 - Lets you toggle each property on/off in the UI.
 - Shows the current month + next month by default, with a **Load more** button for additional months.
 
 ## Project structure
 
-- `server.js` — HTTP server, static file serving, iCal proxy API, and Airbnb price API.
+- `server.js` — HTTP server, static file serving, and iCal proxy API.
 - `index.html` — main page markup.
 - `main.js` — iCal parsing, data loading, occupancy calculation, and calendar rendering.
 - `style.css` — app styling.
@@ -38,28 +39,17 @@ Then open:
 
 - **Port**: set `PORT` environment variable to override the default (`3000`).
 - **Source feeds**: edit the `CALENDARS` array in `server.js`.
-- **Pricing listings**: edit the `PRICE_PROPERTIES` array in `server.js` (one Airbnb listing per property ID).
-- **Property grouping**: edit `CALENDARS_META` in `main.js` to control how one or more source feeds map to a single property row.
+- **Property grouping and tabs**: edit `CALENDARS_META` in `main.js` to control how one or more source feeds map to a single property row and location tab.
 - **Maximum time horizon**: edit `MAX_DAYS_AHEAD` in `main.js` (currently `180`).
 - **Initial months shown**: edit `INITIAL_VISIBLE_MONTHS` in `main.js` (currently `2`).
-- **Pricing horizon**: edit `PRICE_DAYS_AHEAD` in `main.js` (currently `30`).
 
 ## API endpoints
 
 - `GET /api/calendars` — list of source calendar IDs and names.
 - `GET /api/ical?id=<index>` — proxied iCal file for a source calendar.
-- `GET /api/prices?propertyId=<index>&from=<YYYY-MM-DD>&days=<1-30>` — nightly base price lookup for one property/date range.
-
-`/api/prices` responses include `entries[]` with:
-- `status: "ok"` plus `amount` and `formatted` when a nightly price is available.
-- `status: "missing"` when pricing is unavailable for that date.
-- `cached: true|false` showing whether the value came from the in-memory cache.
-
-Pricing cache TTL is 1 hour.
 
 Limitations:
 - Airbnb page parsing is best-effort and can break if Airbnb changes page structure.
-- When no one-night base price is available (for example due to minimum-stay rules), the UI shows `-`.
 
 No authentication is currently required for API routes.
 
