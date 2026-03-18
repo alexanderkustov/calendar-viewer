@@ -7,8 +7,8 @@ const CALENDARS_META = [
   { name: "Pardais 205", sources: [0] },
   { name: "Silchoro 1205", sources: [1] },
   { name: "Antero A7", sources: [2, 3] },
-  { name: "portimao J", sources: [4] },
-  { name: "portimao G", sources: [5] }
+  { name: "portimao J 138", sources: [4] },
+  { name: "portimao G 347", sources: [5] }
 ];
 
 let calData = new Array(CALENDARS_META.length).fill(null);
