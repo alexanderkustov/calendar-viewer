@@ -1,18 +1,29 @@
-const COLORS = ['#3E92CF', '#60C6C9', '#1A558A', '#9B51E0', '#27AE60'];
+const COLORS = ['#3E92CF', '#60C6C9', '#1A558A', '#9B51E0', '#27AE60', '#F2994A', '#E76F51', '#2A9D8F', '#264653', '#E9C46A'];
 const MAX_DAYS_AHEAD = 180;
 const INITIAL_VISIBLE_MONTHS = 2;
 const LOAD_MORE_MONTHS = 1;
-const LOCATION_TABS = [
-  { id: 'albufeira', label: 'Albufeira' },
-  { id: 'portimao', label: 'Portimao' }
+const LOCATION_ROUTES = [
+  { id: 'albufeira', label: 'Albufeira', path: '/albufeira', showInTabs: true },
+  { id: 'portimao', label: 'Portimao', path: '/portimao', showInTabs: true },
+  { id: 'mama', label: 'Mama', path: '/mama', showInTabs: false }
 ];
+const LOCATION_TABS = LOCATION_ROUTES.filter((location) => location.showInTabs);
 
 const CALENDARS_META = [
   { name: "Pardais 205", location: 'albufeira', sources: [0] },
   { name: "Silchoro 1205", location: 'albufeira', sources: [1] },
   { name: "Antero A7", location: 'albufeira', sources: [2, 3] },
   { name: "Portimao J138", location: 'portimao', sources: [4] },
-  { name: "Portimao G137", location: 'portimao', sources: [5] }
+  { name: "Portimao G137", location: 'portimao', sources: [5] },
+  { name: "Raul 24", location: 'mama', sources: [6] },
+  { name: "Raul 24 - 3 Floor", location: 'mama', sources: [7] },
+  { name: "Eulalia", location: 'mama', sources: [8] },
+  { name: "Balaia 1", location: 'mama', sources: [9] },
+  { name: "Balaia 2", location: 'mama', sources: [10] },
+  { name: "Onda Verde", location: 'mama', sources: [11] },
+  { name: "Aljezur", location: 'mama', sources: [12] },
+  { name: "Pescadores", location: 'mama', sources: [13] },
+  { name: "Paraiso", location: 'mama', sources: [14] }
 ];
 
 let calData = new Array(CALENDARS_META.length).fill(null);
@@ -27,6 +38,7 @@ function startOfDay(d) { const r = new Date(d); r.setHours(0, 0, 0, 0); return r
 function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
 function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
 function fmtFull(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
+function fmtShort(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
 function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
 function bookingNights(ev) { return Math.max(1, Math.round((startOfDay(ev.end) - startOfDay(ev.start)) / 86400000)); }
 function nightsLabel(nights) { return `${nights} night${nights !== 1 ? 's' : ''}`; }
@@ -36,20 +48,28 @@ function bookingTitle(ev) {
   if (/\breserv(?:ed|ation)\b/i.test(summary)) return nightsLabel(bookingNights(ev));
   return summary;
 }
-function nextCheckoutDate(ci, from = startOfDay(new Date())) {
+function nextCheckoutDates(ci, limit = 3, from = startOfDay(new Date())) {
   const events = calData[ci] || [];
-  let nextDate = null;
+  const seen = new Set();
+  const dates = [];
   for (const ev of events) {
     const checkout = startOfDay(ev.end);
     if (checkout < from) continue;
-    if (!nextDate || checkout < nextDate) nextDate = checkout;
+    const key = checkout.getTime();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    dates.push(checkout);
   }
-  return nextDate;
+  dates.sort((a, b) => a - b);
+  return dates.slice(0, limit);
 }
 function calcRangeEnd(today, monthWindow) {
   const monthWindowEnd = new Date(today.getFullYear(), today.getMonth() + monthWindow, 0);
   const hardLimit = addDays(today, MAX_DAYS_AHEAD);
   return new Date(Math.min(monthWindowEnd, hardLimit));
+}
+function colorForCalendar(index) {
+  return COLORS[index % COLORS.length];
 }
 
 const WEEKDAYS_SHORT = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
@@ -61,21 +81,32 @@ function calendarsForLocation(locationId = activeLocation) {
     .filter(({ meta }) => meta.location === locationId);
 }
 
+function normalizePathname(pathname) {
+  if (!pathname || pathname === '/') return '/';
+  return pathname.replace(/\/+$/, '');
+}
+
+function locationForPath(pathname) {
+  const normalizedPath = normalizePathname(pathname);
+  if (normalizedPath === '/') return LOCATION_TABS[0]?.id || null;
+  return LOCATION_ROUTES.find((location) => location.path === normalizedPath)?.id || null;
+}
+
 function visibleCalendarsForLocation(locationId = activeLocation) {
   return calendarsForLocation(locationId).filter(({ idx }) => visible[idx]);
 }
 
 function activeLocationLabel() {
-  return LOCATION_TABS.find((location) => location.id === activeLocation)?.label || activeLocation;
+  return LOCATION_ROUTES.find((location) => location.id === activeLocation)?.label || activeLocation;
 }
 
 function nextCheckoutLabel(idx) {
-  if (calStatus[idx] === 'loading') return 'Next check-out: loading...';
-  if (calStatus[idx] === 'error') return 'Next check-out unavailable';
+  if (calStatus[idx] === 'loading') return 'Exits: loading...';
+  if (calStatus[idx] === 'error') return 'Exits unavailable';
 
-  const nextDate = nextCheckoutDate(idx);
-  if (!nextDate) return 'No upcoming check-out';
-  return `Next check-out: ${fmtFull(nextDate)}`;
+  const nextDates = nextCheckoutDates(idx);
+  if (!nextDates.length) return 'No upcoming exits';
+  return `Exits: ${nextDates.map((date) => fmtShort(date)).join(', ')}`;
 }
 
 // ─── iCal Parse ─────────────────────────────────────────────────────────────
@@ -133,16 +164,8 @@ function bookedDaysInRange(ci, from, to) {
 }
 
 function occupancyForMonth(ci, year, month) {
-  const today = startOfDay(new Date());
-  const rangeEnd = addDays(today, MAX_DAYS_AHEAD);
-  const mStart = new Date(year, month, 1);
-  const mEnd = new Date(year, month + 1, 0); // last day
-
-  const from = new Date(Math.max(mStart, today));
-  const to = addDays(new Date(Math.min(mEnd, rangeEnd)), 1); // exclusive
-
-  if (from >= to) return null;
-
+  const from = new Date(year, month, 1);
+  const to = new Date(year, month + 1, 1);
   const totalDays = Math.round((to - from) / 86400000);
   const booked = bookedDaysInRange(ci, from, to);
   return Math.round((booked / totalDays) * 100);
@@ -165,19 +188,27 @@ function submitPassword() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+  const initialLocation = locationForPath(window.location.pathname);
+  if (initialLocation) {
+    activeLocation = initialLocation;
+  }
   renderControls();
   loadAll();
 });
 
 async function loadAll() {
   setStatus('loading');
+  const activeCalendars = calendarsForLocation(activeLocation);
   calData = new Array(CALENDARS_META.length).fill(null);
-  calStatus = new Array(CALENDARS_META.length).fill('loading');
+  calStatus = new Array(CALENDARS_META.length).fill('idle');
+  activeCalendars.forEach(({ idx }) => {
+    calStatus[idx] = 'loading';
+  });
   document.getElementById('errorBanner').style.display = 'none';
   renderControls();
   const errors = [];
 
-  await Promise.all(CALENDARS_META.map(async (meta, idx) => {
+  await Promise.all(activeCalendars.map(async ({ meta, idx }) => {
     try {
       const allEvents = [];
       for (const sourceId of meta.sources) {
@@ -228,6 +259,7 @@ function renderTabs() {
   if (!tabs) return;
 
   tabs.innerHTML = '';
+  const currentPath = normalizePathname(window.location.pathname);
   LOCATION_TABS.forEach((location) => {
     const tab = document.createElement('button');
     tab.type = 'button';
@@ -236,10 +268,8 @@ function renderTabs() {
     tab.setAttribute('aria-selected', String(location.id === activeLocation));
     tab.textContent = location.label;
     tab.addEventListener('click', () => {
-      if (location.id === activeLocation) return;
-      activeLocation = location.id;
-      renderControls();
-      renderCalendar();
+      if (currentPath === location.path) return;
+      window.location.assign(location.path);
     });
     tabs.appendChild(tab);
   });
@@ -255,7 +285,7 @@ function renderToggles() {
     toggle.type = 'button';
     toggle.id = `toggle-${idx}`;
     toggle.className = `cal-toggle${visible[idx] ? ' active' : ''}`;
-    toggle.style.setProperty('--cal-color', COLORS[idx]);
+    toggle.style.setProperty('--cal-color', colorForCalendar(idx));
     if (calStatus[idx] === 'error') toggle.classList.add('error');
     toggle.innerHTML = `
       <span class="toggle-dot"></span>
@@ -328,13 +358,32 @@ function addDayBadge(cell, className, text) {
 function addCheckoutMarker(cell, ev, ci) {
   const marker = document.createElement('div');
   marker.className = 'booking-seg seg-end seg-checkout-marker';
-  marker.style.setProperty('--bar-color', COLORS[ci]);
+  marker.style.setProperty('--bar-color', colorForCalendar(ci));
   if (ev) {
     marker.addEventListener('mouseenter', e => showTip(e, ev, ci));
     marker.addEventListener('mousemove', moveTip);
     marker.addEventListener('mouseleave', hideTip);
   }
   cell.appendChild(marker);
+}
+
+function buildOccupancyRow(year, month, activeCalendars) {
+  const row = document.createElement('div');
+  row.className = 'occupancy-row';
+
+  const labelCell = document.createElement('div');
+  labelCell.className = 'occupancy-label-cell';
+  labelCell.textContent = 'OCC';
+  row.appendChild(labelCell);
+
+  activeCalendars.forEach(({ idx: ci }) => {
+    const cell = document.createElement('div');
+    cell.className = 'occupancy-cell';
+    cell.innerHTML = `<span class="occupancy-value" style="color:${colorForCalendar(ci)}">${occupancyForMonth(ci, year, month)}%</span>`;
+    row.appendChild(cell);
+  });
+
+  return row;
 }
 
 function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
@@ -345,50 +394,25 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
   const section = document.createElement('div');
   section.className = 'month-section';
 
-  // ── Month heading + occupancy bars ──────────────────────────────────────
+  // ── Month heading ───────────────────────────────────────────────────────
   const heading = document.createElement('div');
   heading.className = 'month-heading';
 
   const titleEl = document.createElement('div');
   titleEl.className = 'month-title';
   titleEl.innerHTML = `
-    <div class="month-labels">
-      <span class="month-tech-label">MONTH</span>
-      <span class="month-tech-label">${MONTH_NAMES[month].toUpperCase()}</span>
-      <span class="month-tech-label">YEAR</span>
-      <span class="month-tech-label">${year}</span>
-    </div>
-    <div class="month-big-num">${month + 1}</div>
+    <span class="month-tech-label">MONTH</span>
+    <span class="month-tech-value">${MONTH_NAMES[month].toUpperCase()}</span>
+    <span class="month-tech-label">YEAR</span>
+    <span class="month-tech-value">${year}</span>
+    <span class="month-big-num">${month + 1}</span>
   `;
   heading.appendChild(titleEl);
-  // Occupancy stats — one per visible calendar
-  const statsEl = document.createElement('div');
-  statsEl.className = 'month-stats';
+  section.appendChild(heading);
 
-  activeCalendars.forEach(({ meta, idx: ci }) => {
-    const pct = occupancyForMonth(ci, year, month);
-    if (pct === null) return;
-
-    const stat = document.createElement('div');
-    stat.className = 'occ-stat';
-    stat.innerHTML = `
-      <div class="occ-label">
-        <span class="occ-dot" style="background:${COLORS[ci]}"></span>
-        ${meta.name}
-      </div>
-      <div class="occ-bar-wrap">
-        <div class="occ-bar-fill" style="width:${pct}%;background:${COLORS[ci]}"></div>
-      </div>
-      <span class="occ-pct" style="color:${COLORS[ci]}">${pct}%</span>`;
-    statsEl.appendChild(stat);
-  });
-
-  heading.appendChild(statsEl);
-  // Add horizontal line
   const hr = document.createElement('hr');
   hr.className = 'month-section-line';
-  heading.appendChild(hr);
-  section.appendChild(heading);
+  section.appendChild(hr);
 
   // ── Calendar grid card ───────────────────────────────────────────────────
   const card = document.createElement('div');
@@ -406,7 +430,7 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
   activeCalendars.forEach(({ meta, idx: ci }) => {
     const th = document.createElement('div');
     th.className = 'cal-header-cell';
-    th.innerHTML = `<span class="label-dot" style="background:${COLORS[ci]}"></span>${meta.name}`;
+    th.innerHTML = `<span class="label-dot" style="background:${colorForCalendar(ci)}"></span>${meta.name}`;
     headerRow.appendChild(th);
   });
   card.appendChild(headerRow);
@@ -468,7 +492,7 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
 
         const seg = document.createElement('div');
         seg.className = `booking-seg seg-${segType}`;
-        seg.style.setProperty('--bar-color', COLORS[ci]);
+        seg.style.setProperty('--bar-color', colorForCalendar(ci));
 
         // Add text label for start/only blocks
         if (segType === 'start' || segType === 'only') {
@@ -498,6 +522,7 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
     currentDay = addDays(currentDay, 1);
   }
 
+  card.appendChild(buildOccupancyRow(year, month, activeCalendars));
   section.appendChild(card);
   return section;
 }
@@ -513,7 +538,7 @@ function showTip(e, ev, ci) {
     <div class="tip-row tip-in">↓ Check-in &ensp;${fmtFull(ev.start)}</div>
     <div class="tip-row tip-out">↑ Check-out  ${fmtFull(ev.end)}</div>
     <div class="tip-nights">${nightsLabel(nights)}</div>`;
-  tooltip.style.borderColor = COLORS[ci];
+  tooltip.style.borderColor = colorForCalendar(ci);
   tooltip.style.display = 'block';
   moveTip(e);
 }

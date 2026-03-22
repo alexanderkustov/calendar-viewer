@@ -6,11 +6,12 @@ A lightweight Node.js + vanilla JavaScript web app that shows iCal availability 
 
 ## Features
 
-- Aggregates six iCal feeds (Airbnb + Booking.com) through a local proxy (`/api/ical`) to avoid browser CORS issues.
+- Aggregates multiple iCal feeds (Airbnb + Booking.com) through a local proxy (`/api/ical`) to avoid browser CORS issues.
 - Displays bookings in a month-by-month timeline.
-- Shows monthly occupancy percentages per property.
-- Splits the view into **Albufeira** and **Portimao** tabs, defaulting to **Albufeira**.
-- Shows the next check-out date for each property in text form in the top controls.
+- Shows monthly occupancy percentages per property in a footer row for each month, calculated across the full month.
+- Splits the view into **Albufeira** and **Portimao** tabs, defaulting to **Albufeira** on `/`.
+- Supports direct location routes for the visible locations, with optional route-only internal views that do not appear in the tabs.
+- Shows the next three check-out dates for each property in simple text form in the top controls.
 - Lets you toggle each property on/off in the UI.
 - Shows the current month + next month by default, with a **Load more** button for additional months.
 
@@ -34,14 +35,24 @@ npm start
 Then open:
 
 - `http://localhost:3000`
+- `http://localhost:3000/albufeira`
+- `http://localhost:3000/portimao`
 
 ## Configuration notes
 
 - **Port**: set `PORT` environment variable to override the default (`3000`).
 - **Source feeds**: edit the `CALENDARS` array in `server.js`.
-- **Property grouping and tabs**: edit `CALENDARS_META` in `main.js` to control how one or more source feeds map to a single property row and location tab.
+- **Location routes**: edit `LOCATION_ROUTES` in `main.js`; set `showInTabs: false` for route-only views that should stay out of the tab bar.
+- **Property grouping and tabs**: edit `CALENDARS_META` in `main.js` to control how one or more source feeds map to a single property row and location tab; keep each `location` value aligned with `LOCATION_ROUTES`.
 - **Maximum time horizon**: edit `MAX_DAYS_AHEAD` in `main.js` (currently `180`).
 - **Initial months shown**: edit `INITIAL_VISIBLE_MONTHS` in `main.js` (currently `2`).
+
+## Page routes
+
+- `GET /` — default entrypoint, showing the Albufeira view first.
+- `GET /albufeira` — direct entrypoint for Albufeira calendars.
+- `GET /portimao` — direct entrypoint for Portimao calendars.
+- Additional route-only internal views can be configured without appearing in the tabs.
 
 ## API endpoints
 

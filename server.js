@@ -9,6 +9,7 @@ const path = require("path");
 const url = require("url");
 
 const PORT = process.env.PORT || 3000;
+const LOCATION_ROUTES = new Set(["/albufeira", "/portimao", "/mama"]);
 
 const CALENDARS = [
   {
@@ -34,6 +35,42 @@ const CALENDARS = [
   {
     name: "Portimao G137",
     url: "https://www.airbnb.co.uk/calendar/ical/1635425171512419857.ics?t=88790fa90b9c4231bab4773dd37fae23"
+  },
+  {
+    name: "Raul 24",
+    url: "https://www.airbnb.com/calendar/ical/48891793.ics?t=73cfb63e849d437687262fb8e2525013"
+  },
+  {
+    name: "Raul 24 - 3 Floor",
+    url: "https://www.airbnb.com/calendar/ical/1357204030957836095.ics?t=4a8279ab1e014db0bac53800abd50c89"
+  },
+  {
+    name: "Eulalia",
+    url: "https://www.airbnb.com/calendar/ical/1227650987862879407.ics?t=b7075d6ad7574d658c57351d3da09b85"
+  },
+  {
+    name: "Balaia 1",
+    url: "https://www.airbnb.com/calendar/ical/860089921432271203.ics?t=174efa0cf3ea4db2b8f236c91774fec6"
+  },
+  {
+    name: "Balaia 2",
+    url: "https://www.airbnb.com/calendar/ical/885874220580116381.ics?t=7be98b967ae84a8491a876d8aa833b43"
+  },
+  {
+    name: "Onda Verde",
+    url: "https://www.airbnb.com/calendar/ical/1171811513640036311.ics?t=447e008057484ff9a138b8f44bab0678"
+  },
+  {
+    name: "Aljezur",
+    url: "https://www.airbnb.com/calendar/ical/40546691.ics?t=d7172bfa75f1444e978602763734f7c0"
+  },
+  {
+    name: "Pescadores",
+    url: "https://www.airbnb.com/calendar/ical/794191503164393359.ics?t=2402cd489f8143a69f3e3101c9511f4f"
+  },
+  {
+    name: "Paraiso",
+    url: "https://www.airbnb.com/calendar/ical/1578004322904051113.ics?t=9d7253ba27e94560b1358ed2b73d174c"
   }
 ];
 
@@ -61,8 +98,27 @@ function fetchUrl(targetUrl) {
   });
 }
 
+function normalizePathname(pathname) {
+  if (!pathname || pathname === "/") return "/";
+  return pathname.replace(/\/+$/, "");
+}
+
+function serveStaticFile(res, file, mime) {
+  const filePath = path.join(__dirname, file);
+  if (fs.existsSync(filePath)) {
+    res.writeHead(200, { "Content-Type": mime });
+    res.end(fs.readFileSync(filePath));
+    return true;
+  }
+
+  res.writeHead(404);
+  res.end(`${file} not found — make sure all files are in the same folder as server.js`);
+  return false;
+}
+
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
+  const pathname = normalizePathname(parsedUrl.pathname);
 
   // Password protection removed — all routes accessible
 
@@ -78,35 +134,31 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Serve static files (index.html, style.css, main.js)
+  if (pathname === "/" || pathname === "/index.html" || LOCATION_ROUTES.has(pathname)) {
+    serveStaticFile(res, "index.html", "text/html; charset=utf-8");
+    return;
+  }
+
   const STATIC = {
-    "/": { file: "index.html", mime: "text/html; charset=utf-8" },
-    "/index.html": { file: "index.html", mime: "text/html; charset=utf-8" },
     "/style.css": { file: "style.css", mime: "text/css; charset=utf-8" },
     "/main.js": { file: "main.js", mime: "application/javascript; charset=utf-8" },
   };
 
-  if (STATIC[parsedUrl.pathname]) {
-    const { file, mime } = STATIC[parsedUrl.pathname];
-    const filePath = path.join(__dirname, file);
-    if (fs.existsSync(filePath)) {
-      res.writeHead(200, { "Content-Type": mime });
-      res.end(fs.readFileSync(filePath));
-    } else {
-      res.writeHead(404);
-      res.end(`${file} not found — make sure all files are in the same folder as server.js`);
-    }
+  if (STATIC[pathname]) {
+    const { file, mime } = STATIC[pathname];
+    serveStaticFile(res, file, mime);
     return;
   }
 
   // API: return calendar list
-  if (parsedUrl.pathname === "/api/calendars") {
+  if (pathname === "/api/calendars") {
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(CALENDARS.map((c, i) => ({ id: i, name: c.name }))));
     return;
   }
 
   // API: proxy a calendar by index
-  if (parsedUrl.pathname === "/api/ical") {
+  if (pathname === "/api/ical") {
     const id = parseInt(parsedUrl.query.id, 10);
     if (isNaN(id) || id < 0 || id >= CALENDARS.length) {
       res.writeHead(400, { "Content-Type": "application/json" });

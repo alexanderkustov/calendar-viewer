@@ -708,7 +708,7 @@ h1 {
   letter-spacing: 0.03em;
   text-transform: none;
   color: var(--muted);
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .cal-toggle .toggle-check {
@@ -758,122 +758,94 @@ h1 {
   color: var(--checkout-color);
 }
 
-/* ── Month heading with stats ────────────────────────────────────────────── */
+/* ── Month heading ───────────────────────────────────────────────────────── */
 
 .month-heading {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2.5rem;
-  margin-bottom: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.2rem;
   padding-left: var(--row-label-w);
-  flex-wrap: nowrap;
 }
 
 .month-title {
   display: flex;
-  align-items: flex-end;
-  gap: 2.5rem;
-  flex-shrink: 1;
-  position: relative;
-  margin-bottom: 0.5rem;
-}
-
-.month-labels {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  align-items: baseline;
+  gap: 0.55rem;
+  flex-wrap: wrap;
 }
 
 .month-tech-label {
   font-family: 'Oswald', 'Futura Condensed', 'Arial Narrow', Arial, sans-serif;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   color: #222;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   font-weight: 500;
-  opacity: 0.7;
+  opacity: 0.62;
+}
+
+.month-tech-value {
+  font-family: 'Oswald', 'Futura Condensed', 'Arial Narrow', Arial, sans-serif;
+  font-size: 0.95rem;
+  color: #222;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
 }
 
 .month-big-num {
   font-family: 'Futura Extra Bold Condensed', 'Futura Condensed', 'Arial Narrow', Arial, sans-serif;
-  font-size: 4.5rem;
+  font-size: 2.5rem;
   font-weight: 900;
   color: #333;
   line-height: 1;
   letter-spacing: -0.05em;
-  margin-left: 1.5rem;
-  opacity: 0.13;
+  margin-left: 0.35rem;
+  opacity: 0.18;
 }
 
 .month-section-line {
   width: 100%;
   border: none;
   border-top: 2px solid #e8e3db;
-  margin: 1.2rem 0 0.7rem 0;
+  margin: 0 0 0.7rem 0;
 }
 
-/* ── Occupancy stats ─────────────────────────────────────────────────────── */
+/* ── Occupancy row ───────────────────────────────────────────────────────── */
 
-.month-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  flex: 0 0 340px;
-  max-width: 340px;
-  padding-top: 0.25rem;
-  align-items: flex-end;
+.occupancy-row {
+  display: grid;
+  grid-template-columns: 80px repeat(var(--cal-count, 3), 1fr);
+  background: var(--surface2);
 }
 
-.occ-stat {
+.occupancy-label-cell,
+.occupancy-cell {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0.75rem 0.2rem;
 }
 
-.occ-label {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.58rem;
+.occupancy-label-cell {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.68rem;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.07em;
-  white-space: nowrap;
-  width: 100px;
-  flex-shrink: 0;
+  letter-spacing: 0.12em;
+  font-weight: 600;
 }
 
-.occ-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
+.occupancy-cell {
+  border-left: 1px solid var(--border);
 }
 
-.occ-bar-wrap {
-  flex: 1;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.occ-bar-fill {
-  height: 100%;
-  border-radius: 2px;
-  transition: width 0.6s ease;
-  min-width: 2px;
-}
-
-.occ-pct {
+.occupancy-value {
   font-family: 'Cormorant Garamond', serif;
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.01em;
-  width: 34px;
-  text-align: right;
-  flex-shrink: 0;
 }
 
 @media (max-width: 900px) {
@@ -888,5 +860,17 @@ h1 {
 
   .toggle-group {
     justify-content: center;
+  }
+
+  .month-heading {
+    padding-left: 0;
+  }
+
+  .month-title {
+    gap: 0.4rem;
+  }
+
+  .month-big-num {
+    font-size: 2.1rem;
   }
 }
