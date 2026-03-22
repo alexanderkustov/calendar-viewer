@@ -400,19 +400,9 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
 
   const titleEl = document.createElement('div');
   titleEl.className = 'month-title';
-  titleEl.innerHTML = `
-    <span class="month-tech-label">MONTH</span>
-    <span class="month-tech-value">${MONTH_NAMES[month].toUpperCase()}</span>
-    <span class="month-tech-label">YEAR</span>
-    <span class="month-tech-value">${year}</span>
-    <span class="month-big-num">${month + 1}</span>
-  `;
+  titleEl.textContent = `${MONTH_NAMES[month]} ${year}`;
   heading.appendChild(titleEl);
   section.appendChild(heading);
-
-  const hr = document.createElement('hr');
-  hr.className = 'month-section-line';
-  section.appendChild(hr);
 
   // ── Calendar grid card ───────────────────────────────────────────────────
   const card = document.createElement('div');
