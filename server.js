@@ -37,23 +37,19 @@ const CALENDARS = [
     url: "https://www.airbnb.co.uk/calendar/ical/1635425171512419857.ics?t=88790fa90b9c4231bab4773dd37fae23"
   },
   {
-    name: "Raul 24",
+    name: "Raul 24 - 1",
     url: "https://www.airbnb.com/calendar/ical/48891793.ics?t=73cfb63e849d437687262fb8e2525013"
   },
   {
-    name: "Raul 24 - 3 Floor",
+    name: "Raul 24 - 3",
     url: "https://www.airbnb.com/calendar/ical/1357204030957836095.ics?t=4a8279ab1e014db0bac53800abd50c89"
   },
   {
-    name: "Eulalia",
-    url: "https://www.airbnb.com/calendar/ical/1227650987862879407.ics?t=b7075d6ad7574d658c57351d3da09b85"
-  },
-  {
-    name: "Balaia 1",
+    name: "Balaia 404",
     url: "https://www.airbnb.com/calendar/ical/860089921432271203.ics?t=174efa0cf3ea4db2b8f236c91774fec6"
   },
   {
-    name: "Balaia 2",
+    name: "Balaia 405",
     url: "https://www.airbnb.com/calendar/ical/885874220580116381.ics?t=7be98b967ae84a8491a876d8aa833b43"
   },
   {
@@ -71,6 +67,10 @@ const CALENDARS = [
   {
     name: "Paraiso",
     url: "https://www.airbnb.com/calendar/ical/1578004322904051113.ics?t=9d7253ba27e94560b1358ed2b73d174c"
+  },
+  {
+    name: "Eulalia",
+    url: "https://www.airbnb.com/calendar/ical/1227650987862879407.ics?t=b7075d6ad7574d658c57351d3da09b85"
   }
 ];
 
