@@ -10,7 +10,7 @@ A lightweight Node.js + vanilla JavaScript web app that shows iCal availability 
 - Displays bookings in a month-by-month timeline.
 - Shows monthly occupancy percentages per property in a footer row for each month, calculated across the full month.
 - Splits the view into **Albufeira** and **Portimao** tabs, defaulting to **Albufeira** on `/`.
-- Supports direct location routes for the visible locations, with optional route-only internal views that do not appear in the tabs.
+- Supports direct location routes for the visible locations, with route-only internal views that hide the tab bar while active.
 - Shows the next three check-out dates for each property in simple text form in the top controls.
 - Lets you toggle each property on/off in the UI.
 - Shows the current month + next month by default, with a **Load more** button for additional months.
@@ -37,6 +37,7 @@ Then open:
 - `http://localhost:3000`
 - `http://localhost:3000/albufeira`
 - `http://localhost:3000/portimao`
+- `http://localhost:3000/mama`
 
 ## Configuration notes
 
@@ -52,6 +53,7 @@ Then open:
 - `GET /` — default entrypoint, showing the Albufeira view first.
 - `GET /albufeira` — direct entrypoint for Albufeira calendars.
 - `GET /portimao` — direct entrypoint for Portimao calendars.
+- `GET /mama` — route-only view with its own calendars and no location tabs.
 - Additional route-only internal views can be configured without appearing in the tabs.
 
 ## API endpoints

@@ -23,7 +23,7 @@ const CALENDARS_META = [
   { name: "Onda Verde", location: 'mama', sources: [11] },
   { name: "Aljezur", location: 'mama', sources: [12] },
   { name: "Pescadores", location: 'mama', sources: [13] },
-  { name: "Paraiso", location: 'mama', sources: [14] }
+  { name: "Eulalia", location: 'mama', sources: [14] }
 ];
 
 let calData = new Array(CALENDARS_META.length).fill(null);
@@ -100,13 +100,17 @@ function activeLocationLabel() {
   return LOCATION_ROUTES.find((location) => location.id === activeLocation)?.label || activeLocation;
 }
 
+function activeLocationShowsTabs() {
+  return LOCATION_ROUTES.find((location) => location.id === activeLocation)?.showInTabs ?? false;
+}
+
 function nextCheckoutLabel(idx) {
-  if (calStatus[idx] === 'loading') return 'Exits: loading...';
-  if (calStatus[idx] === 'error') return 'Exits unavailable';
+  if (calStatus[idx] === 'loading') return '🚪: loading...';
+  if (calStatus[idx] === 'error') return '🚪 unavailable';
 
   const nextDates = nextCheckoutDates(idx);
-  if (!nextDates.length) return 'No upcoming exits';
-  return `Exits: ${nextDates.map((date) => fmtShort(date)).join(', ')}`;
+  if (!nextDates.length) return '🚪: No upcoming exits';
+  return `🚪: ${nextDates.map((date) => fmtShort(date)).join(', ')}`;
 }
 
 // ─── iCal Parse ─────────────────────────────────────────────────────────────
@@ -259,6 +263,9 @@ function renderTabs() {
   if (!tabs) return;
 
   tabs.innerHTML = '';
+  tabs.hidden = !activeLocationShowsTabs();
+  if (tabs.hidden) return;
+
   const currentPath = normalizePathname(window.location.pathname);
   LOCATION_TABS.forEach((location) => {
     const tab = document.createElement('button');
