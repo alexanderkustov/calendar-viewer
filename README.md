@@ -23,7 +23,7 @@ A lightweight vanilla JavaScript calendar timeline viewer that can run as a stat
 - `albufeira/index.html`, `portimao/index.html`, `mama/index.html` — static route entrypoints for GitHub Pages.
 - `main.js` — iCal parsing, data loading, occupancy calculation, and calendar rendering.
 - `style.css` — app styling.
-- `scripts/sync-static-data.js` — fetches remote iCal feeds and writes static snapshots into `data/`.
+- `scripts/sync-static-data.js` — fetches remote iCal feeds into a staged directory and swaps the managed snapshot files into `data/` only after the full refresh succeeds.
 
 ## Prerequisites
 
@@ -51,7 +51,7 @@ Then open:
 - **Property grouping and tabs**: edit `CALENDARS_META` in `main.js` to control how one or more source feeds map to a single property row and location tab; keep each `location` value aligned with `LOCATION_ROUTES`.
 - **Maximum time horizon**: edit `MAX_DAYS_AHEAD` in `main.js` (currently `180`).
 - **Initial months shown**: edit `INITIAL_VISIBLE_MONTHS` in `main.js` (currently `2`).
-- **Static refresh**: run `npm run sync:calendars` to refresh the committed `data/` snapshots manually.
+- **Static refresh**: run `npm run sync:calendars` to refresh the committed `data/` snapshots manually. The sync is all-or-nothing: a successful run replaces the existing `calendar-*.ics`, `calendars.json`, and `manifest.json` files, while a failed run leaves the previous snapshot set in place.
 
 ## Page routes
 

@@ -4,71 +4,178 @@ const path = require("path");
 const { CALENDARS, fetchUrl } = require("../server.js");
 
 const DATA_DIR = path.join(__dirname, "..", "data");
+const FETCH_TIMEOUT_MS = 30_000;
+const MANAGED_DATA_FILES = new Set(["calendars.json", "manifest.json"]);
+const CALENDAR_FILE_PATTERN = /^calendar-\d+\.ics$/;
 
-async function fileExists(filePath) {
+async function pathExists(targetPath) {
   try {
-    await fs.access(filePath);
+    await fs.access(targetPath);
     return true;
   } catch {
     return false;
   }
 }
 
-async function syncStaticData() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
+function isManagedDataEntry(entryName) {
+  return MANAGED_DATA_FILES.has(entryName) || CALENDAR_FILE_PATTERN.test(entryName);
+}
 
-  const staleCalendars = [];
-  console.log(`Syncing ${CALENDARS.length} calendar snapshots into ${DATA_DIR}`);
-
-  for (const [id, calendar] of CALENDARS.entries()) {
-    const filePath = path.join(DATA_DIR, `calendar-${id}.ics`);
-    try {
-      console.log(`Fetching [${id}] ${calendar.name}`);
-      const icsData = await fetchUrl(calendar.url);
-      if (!icsData.includes("BEGIN:VCALENDAR")) {
-        throw new Error("Not a valid iCal response");
-      }
-      await fs.writeFile(filePath, icsData, "utf8");
-    } catch (error) {
-      if (await fileExists(filePath)) {
-        console.warn(`Keeping existing snapshot for [${id}] ${calendar.name}: ${error.message}`);
-        staleCalendars.push({ id, name: calendar.name, error: error.message });
-        continue;
-      }
-      throw new Error(`Failed to fetch ${calendar.name}: ${error.message}`);
-    }
+function validateCalendarSnapshot(icsData) {
+  if (typeof icsData !== "string") {
+    throw new Error("Calendar response was not text");
   }
 
-  const calendarsIndex = CALENDARS.map((calendar, id) => ({
+  if (!icsData.includes("BEGIN:VCALENDAR") || !icsData.includes("END:VCALENDAR")) {
+    throw new Error("Not a valid iCal response");
+  }
+}
+
+async function fetchWithTimeout(targetUrl, timeoutMs = FETCH_TIMEOUT_MS, fetchCalendar = fetchUrl) {
+  let timeoutId;
+
+  try {
+    return await Promise.race([
+      fetchCalendar(targetUrl),
+      new Promise((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(new Error(`Request timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function copyPreservedDataEntries(sourceDir, targetDir) {
+  if (!(await pathExists(sourceDir))) {
+    return;
+  }
+
+  const entries = await fs.readdir(sourceDir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (isManagedDataEntry(entry.name)) {
+      continue;
+    }
+
+    await fs.cp(
+      path.join(sourceDir, entry.name),
+      path.join(targetDir, entry.name),
+      { force: true, recursive: true }
+    );
+  }
+}
+
+function buildCalendarsIndex(calendars) {
+  return calendars.map((calendar, id) => ({
     id,
     name: calendar.name,
     sourcePath: `calendar-${id}.ics`,
   }));
-  const manifest = {
-    generatedAt: new Date().toISOString(),
-    calendarCount: CALENDARS.length,
-    staleCalendars,
+}
+
+function buildManifest(calendars, now = new Date()) {
+  return {
+    generatedAt: now.toISOString(),
+    calendarCount: calendars.length,
+    staleCalendars: [],
   };
+}
+
+async function writeSnapshotSet(
+  targetDir,
+  { calendars = CALENDARS, fetchCalendar = fetchUrl, existingDataDir = DATA_DIR } = {}
+) {
+  await fs.mkdir(targetDir, { recursive: true });
+  await copyPreservedDataEntries(existingDataDir, targetDir);
+
+  for (const [id, calendar] of calendars.entries()) {
+    console.log(`Fetching [${id}] ${calendar.name}`);
+    const icsData = await fetchWithTimeout(calendar.url, FETCH_TIMEOUT_MS, fetchCalendar);
+    validateCalendarSnapshot(icsData);
+    await fs.writeFile(path.join(targetDir, `calendar-${id}.ics`), icsData, "utf8");
+  }
 
   await fs.writeFile(
-    path.join(DATA_DIR, "calendars.json"),
-    `${JSON.stringify(calendarsIndex, null, 2)}\n`,
+    path.join(targetDir, "calendars.json"),
+    `${JSON.stringify(buildCalendarsIndex(calendars), null, 2)}\n`,
     "utf8"
   );
   await fs.writeFile(
-    path.join(DATA_DIR, "manifest.json"),
-    `${JSON.stringify(manifest, null, 2)}\n`,
+    path.join(targetDir, "manifest.json"),
+    `${JSON.stringify(buildManifest(calendars), null, 2)}\n`,
     "utf8"
   );
+}
 
-  if (staleCalendars.length) {
-    console.warn(`Completed with ${staleCalendars.length} stale snapshot(s).`);
-  } else {
-    console.log("Calendar snapshots are up to date.");
+function buildSwapDirPath(dataDir, label) {
+  return path.join(
+    path.dirname(dataDir),
+    `${path.basename(dataDir)}-${label}-${process.pid}-${Date.now()}`
+  );
+}
+
+async function replaceDataDirectory(stagedDir, dataDir = DATA_DIR) {
+  const existingDataDir = await pathExists(dataDir);
+  const backupDir = existingDataDir ? buildSwapDirPath(dataDir, "backup") : null;
+
+  try {
+    if (existingDataDir) {
+      await fs.rename(dataDir, backupDir);
+    }
+
+    await fs.rename(stagedDir, dataDir);
+
+    if (backupDir && (await pathExists(backupDir))) {
+      await fs.rm(backupDir, { force: true, recursive: true });
+    }
+  } catch (error) {
+    if (backupDir && (await pathExists(backupDir)) && !(await pathExists(dataDir))) {
+      await fs.rename(backupDir, dataDir);
+    }
+
+    throw error;
   }
 }
 
-syncStaticData().catch((error) => {
-  console.error(error.message);
-  process.exitCode = 1;
-});
+async function syncStaticData({
+  calendars = CALENDARS,
+  fetchCalendar = fetchUrl,
+  dataDir = DATA_DIR,
+} = {}) {
+  const dataParentDir = path.dirname(dataDir);
+  const stagedDir = buildSwapDirPath(dataDir, "staged");
+
+  await fs.mkdir(dataParentDir, { recursive: true });
+  console.log(`Syncing ${calendars.length} calendar snapshots into ${dataDir}`);
+
+  try {
+    await writeSnapshotSet(stagedDir, { calendars, fetchCalendar, existingDataDir: dataDir });
+    await replaceDataDirectory(stagedDir, dataDir);
+    console.log("Calendar snapshots are up to date.");
+  } catch (error) {
+    await fs.rm(stagedDir, { force: true, recursive: true });
+    throw error;
+  }
+}
+
+if (require.main === module) {
+  syncStaticData().catch((error) => {
+    console.error(`Sync failed: ${error.message}`);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  DATA_DIR,
+  FETCH_TIMEOUT_MS,
+  buildCalendarsIndex,
+  buildManifest,
+  copyPreservedDataEntries,
+  isManagedDataEntry,
+  replaceDataDirectory,
+  syncStaticData,
+  validateCalendarSnapshot,
+  writeSnapshotSet,
+};
