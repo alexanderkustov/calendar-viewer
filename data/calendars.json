@@ -1,0 +1,77 @@
+[
+  {
+    "id": 0,
+    "name": "Pardais 205",
+    "sourcePath": "calendar-0.ics"
+  },
+  {
+    "id": 1,
+    "name": "Silchoro 1205",
+    "sourcePath": "calendar-1.ics"
+  },
+  {
+    "id": 2,
+    "name": "Antero A7",
+    "sourcePath": "calendar-2.ics"
+  },
+  {
+    "id": 3,
+    "name": "Antero A7 booking",
+    "sourcePath": "calendar-3.ics"
+  },
+  {
+    "id": 4,
+    "name": "Portimao J138",
+    "sourcePath": "calendar-4.ics"
+  },
+  {
+    "id": 5,
+    "name": "Portimao G137",
+    "sourcePath": "calendar-5.ics"
+  },
+  {
+    "id": 6,
+    "name": "Raul 24 - 1",
+    "sourcePath": "calendar-6.ics"
+  },
+  {
+    "id": 7,
+    "name": "Raul 24 - 3",
+    "sourcePath": "calendar-7.ics"
+  },
+  {
+    "id": 8,
+    "name": "Balaia 404",
+    "sourcePath": "calendar-8.ics"
+  },
+  {
+    "id": 9,
+    "name": "Balaia 405",
+    "sourcePath": "calendar-9.ics"
+  },
+  {
+    "id": 10,
+    "name": "Onda Verde",
+    "sourcePath": "calendar-10.ics"
+  },
+  {
+    "id": 11,
+    "name": "Aljezur",
+    "sourcePath": "calendar-11.ics"
+  },
+  {
+    "id": 12,
+    "name": "Pescadores",
+    "sourcePath": "calendar-12.ics"
+  },
+  {
+    "id": 13,
+    "name": "Paraiso",
+    "sourcePath": "calendar-13.ics"
+  },
+  {
+    "id": 14,
+    "name": "Eulalia",
+    "sourcePath": "calendar-14.ics"
+  }
+]

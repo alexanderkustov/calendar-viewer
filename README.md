@@ -2,11 +2,11 @@
 
 https://calendar-viewer-production.up.railway.app/
 
-A lightweight Node.js + vanilla JavaScript web app that shows iCal availability across multiple properties in a timeline view.
+A lightweight vanilla JavaScript calendar timeline viewer that can run as a static site on GitHub Pages.
 
 ## Features
 
-- Aggregates multiple iCal feeds (Airbnb + Booking.com) through a local proxy (`/api/ical`) to avoid browser CORS issues.
+- Publishes generated calendar snapshots from Airbnb and Booking.com as static files under `data/`.
 - Displays bookings in a month-by-month timeline.
 - Shows monthly occupancy percentages per property in a footer row for each month, calculated across the full month.
 - Splits the view into **Albufeira** and **Portimao** tabs, defaulting to **Albufeira** on `/`.
@@ -14,13 +14,16 @@ A lightweight Node.js + vanilla JavaScript web app that shows iCal availability 
 - Shows the next three check-out dates for each property in simple text form in the top controls.
 - Lets you toggle each property on/off in the UI.
 - Shows the current month + next month by default, with a **Load more** button for additional months.
+- Includes a GitHub Actions workflow that refreshes the static calendar snapshots every 2 hours.
 
 ## Project structure
 
-- `server.js` — HTTP server, static file serving, and iCal proxy API.
+- `server.js` — optional local HTTP server and iCal proxy fallback.
 - `index.html` — main page markup.
+- `albufeira/index.html`, `portimao/index.html`, `mama/index.html` — static route entrypoints for GitHub Pages.
 - `main.js` — iCal parsing, data loading, occupancy calculation, and calendar rendering.
 - `style.css` — app styling.
+- `scripts/sync-static-data.js` — fetches remote iCal feeds and writes static snapshots into `data/`.
 
 ## Prerequisites
 
@@ -29,15 +32,16 @@ A lightweight Node.js + vanilla JavaScript web app that shows iCal availability 
 ## Run locally
 
 ```bash
+npm run sync:calendars
 npm start
 ```
 
 Then open:
 
 - `http://localhost:3000`
-- `http://localhost:3000/albufeira`
-- `http://localhost:3000/portimao`
-- `http://localhost:3000/mama`
+- `http://localhost:3000/albufeira/`
+- `http://localhost:3000/portimao/`
+- `http://localhost:3000/mama/`
 
 ## Configuration notes
 
@@ -47,13 +51,14 @@ Then open:
 - **Property grouping and tabs**: edit `CALENDARS_META` in `main.js` to control how one or more source feeds map to a single property row and location tab; keep each `location` value aligned with `LOCATION_ROUTES`.
 - **Maximum time horizon**: edit `MAX_DAYS_AHEAD` in `main.js` (currently `180`).
 - **Initial months shown**: edit `INITIAL_VISIBLE_MONTHS` in `main.js` (currently `2`).
+- **Static refresh**: run `npm run sync:calendars` to refresh the committed `data/` snapshots manually.
 
 ## Page routes
 
 - `GET /` — default entrypoint, showing the Albufeira view first.
-- `GET /albufeira` — direct entrypoint for Albufeira calendars.
-- `GET /portimao` — direct entrypoint for Portimao calendars.
-- `GET /mama` — route-only view with its own calendars and no location tabs.
+- `GET /albufeira/` — direct entrypoint for Albufeira calendars.
+- `GET /portimao/` — direct entrypoint for Portimao calendars.
+- `GET /mama/` — route-only view with its own calendars and no location tabs.
 - Additional route-only internal views can be configured without appearing in the tabs.
 
 ## API endpoints
@@ -61,11 +66,17 @@ Then open:
 - `GET /api/calendars` — list of source calendar IDs and names.
 - `GET /api/ical?id=<index>` — proxied iCal file for a source calendar.
 
+The browser now prefers the static snapshots in `data/` and only uses the proxy when those files are missing during local development.
+
 Limitations:
 - Airbnb page parsing is best-effort and can break if Airbnb changes page structure.
+- GitHub Pages makes the generated `data/` files public. Only use this setup if that visibility is acceptable.
 
 No authentication is currently required for API routes.
 
-## Deploy
+## Deploy to GitHub Pages
 
-The repository includes `railway.toml`, so it can be deployed to Railway with the Node start command.
+1. Push the repository to GitHub.
+2. In the repository settings, enable GitHub Pages with **GitHub Actions** as the source.
+3. Run the **Refresh Calendars** workflow once to create the first `data/` snapshots if they are not already committed.
+4. The **Deploy Pages** workflow publishes the site on every push, and the refresh workflow keeps `data/` updated every 2 hours.

@@ -2,10 +2,14 @@ const COLORS = ['#3E92CF', '#60C6C9', '#1A558A', '#9B51E0', '#27AE60', '#F2994A'
 const MAX_DAYS_AHEAD = 180;
 const INITIAL_VISIBLE_MONTHS = 2;
 const LOAD_MORE_MONTHS = 1;
+const STATIC_DATA_DIR = 'data';
+const APP_ROOT = document.documentElement.dataset.appRoot || '.';
+const APP_ROOT_URL = new URL(APP_ROOT.endsWith('/') ? APP_ROOT : `${APP_ROOT}/`, window.location.href);
+const PAGE_LOCATION_ID = window.__CALENDAR_VIEWER_LOCATION__ || null;
 const LOCATION_ROUTES = [
-  { id: 'albufeira', label: 'Albufeira', path: '/albufeira', showInTabs: true },
-  { id: 'portimao', label: 'Portimao', path: '/portimao', showInTabs: true },
-  { id: 'mama', label: 'Mama', path: '/mama', showInTabs: false }
+  { id: 'albufeira', label: 'Albufeira', slug: '', showInTabs: true },
+  { id: 'portimao', label: 'Portimao', slug: 'portimao', showInTabs: true },
+  { id: 'mama', label: 'Mama', slug: 'mama', showInTabs: false }
 ];
 const LOCATION_TABS = LOCATION_ROUTES.filter((location) => location.showInTabs);
 
@@ -29,7 +33,7 @@ const CALENDARS_META = [
 let calData = new Array(CALENDARS_META.length).fill(null);
 let calStatus = new Array(CALENDARS_META.length).fill('idle');
 let visible = new Array(CALENDARS_META.length).fill(true); // toggle state
-let activeLocation = LOCATION_TABS[0].id;
+let activeLocation = LOCATION_TABS[0]?.id || LOCATION_ROUTES[0]?.id || null;
 let visibleMonths = INITIAL_VISIBLE_MONTHS;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -81,15 +85,14 @@ function calendarsForLocation(locationId = activeLocation) {
     .filter(({ meta }) => meta.location === locationId);
 }
 
-function normalizePathname(pathname) {
-  if (!pathname || pathname === '/') return '/';
-  return pathname.replace(/\/+$/, '');
+function assetUrl(relativePath) {
+  return new URL(relativePath, APP_ROOT_URL).toString();
 }
 
-function locationForPath(pathname) {
-  const normalizedPath = normalizePathname(pathname);
-  if (normalizedPath === '/') return LOCATION_TABS[0]?.id || null;
-  return LOCATION_ROUTES.find((location) => location.path === normalizedPath)?.id || null;
+function locationUrl(locationId) {
+  const location = LOCATION_ROUTES.find((entry) => entry.id === locationId);
+  if (!location) return APP_ROOT_URL.toString();
+  return new URL(location.slug ? `${location.slug}/` : '', APP_ROOT_URL).toString();
 }
 
 function visibleCalendarsForLocation(locationId = activeLocation) {
@@ -192,13 +195,26 @@ function submitPassword() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  const initialLocation = locationForPath(window.location.pathname);
+  const initialLocation = LOCATION_ROUTES.some((location) => location.id === PAGE_LOCATION_ID)
+    ? PAGE_LOCATION_ID
+    : LOCATION_TABS[0]?.id || LOCATION_ROUTES[0]?.id || null;
   if (initialLocation) {
     activeLocation = initialLocation;
   }
   renderControls();
   loadAll();
 });
+
+async function loadSourceCalendar(sourceId) {
+  const staticRes = await fetch(assetUrl(`${STATIC_DATA_DIR}/calendar-${sourceId}.ics`), { cache: 'no-store' });
+  if (staticRes.ok) {
+    return staticRes.text();
+  }
+
+  const apiRes = await fetch(`/api/ical?id=${sourceId}`);
+  if (!apiRes.ok) throw new Error(`HTTP ${apiRes.status}`);
+  return apiRes.text();
+}
 
 async function loadAll() {
   setStatus('loading');
@@ -216,9 +232,7 @@ async function loadAll() {
     try {
       const allEvents = [];
       for (const sourceId of meta.sources) {
-        const res = await fetch(`/api/ical?id=${sourceId}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const text = await res.text();
+        const text = await loadSourceCalendar(sourceId);
         if (!text.includes('BEGIN:VCALENDAR')) throw new Error('Not a valid iCal response');
         allEvents.push(...parseICS(text));
       }
@@ -234,8 +248,7 @@ async function loadAll() {
   if (errors.length) {
     const banner = document.getElementById('errorBanner');
     banner.style.display = 'block';
-    // No password errors
-    banner.textContent = 'Some calendars failed to load. Make sure server.js is running. ' + errors.join(' | ');
+    banner.textContent = 'Some calendars failed to load. Refresh the generated data files, or use the local Node server fallback. ' + errors.join(' | ');
   } else {
     document.getElementById('errorBanner').style.display = 'none';
   }
@@ -266,7 +279,6 @@ function renderTabs() {
   tabs.hidden = !activeLocationShowsTabs();
   if (tabs.hidden) return;
 
-  const currentPath = normalizePathname(window.location.pathname);
   LOCATION_TABS.forEach((location) => {
     const tab = document.createElement('button');
     tab.type = 'button';
@@ -275,8 +287,8 @@ function renderTabs() {
     tab.setAttribute('aria-selected', String(location.id === activeLocation));
     tab.textContent = location.label;
     tab.addEventListener('click', () => {
-      if (currentPath === location.path) return;
-      window.location.assign(location.path);
+      if (location.id === activeLocation) return;
+      window.location.assign(locationUrl(location.id));
     });
     tabs.appendChild(tab);
   });

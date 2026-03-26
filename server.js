@@ -6,10 +6,15 @@ const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
-const url = require("url");
 
 const PORT = process.env.PORT || 3000;
 const LOCATION_ROUTES = new Set(["/albufeira", "/portimao", "/mama"]);
+const LOCATION_ROUTE_FILES = new Map();
+for (const routePath of LOCATION_ROUTES) {
+  const filePath = `${routePath.slice(1)}/index.html`;
+  LOCATION_ROUTE_FILES.set(routePath, filePath);
+  LOCATION_ROUTE_FILES.set(`${routePath}/index.html`, filePath);
+}
 
 const CALENDARS = [
   {
@@ -116,9 +121,24 @@ function serveStaticFile(res, file, mime) {
   return false;
 }
 
+function mimeForFile(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".css") return "text/css; charset=utf-8";
+  if (ext === ".js") return "application/javascript; charset=utf-8";
+  if (ext === ".json") return "application/json; charset=utf-8";
+  if (ext === ".ics") return "text/calendar; charset=utf-8";
+  if (ext === ".txt") return "text/plain; charset=utf-8";
+  return "text/html; charset=utf-8";
+}
+
+function serveRepoFile(res, relativePath) {
+  return serveStaticFile(res, relativePath, mimeForFile(relativePath));
+}
+
 const server = http.createServer(async (req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const pathname = normalizePathname(parsedUrl.pathname);
+  const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const rawPathname = requestUrl.pathname || "/";
+  const pathname = normalizePathname(rawPathname);
 
   // Password protection removed — all routes accessible
 
@@ -134,19 +154,36 @@ const server = http.createServer(async (req, res) => {
   }
 
   // Serve static files (index.html, style.css, main.js)
-  if (pathname === "/" || pathname === "/index.html" || LOCATION_ROUTES.has(pathname)) {
-    serveStaticFile(res, "index.html", "text/html; charset=utf-8");
+  if (LOCATION_ROUTES.has(pathname) && rawPathname !== `${pathname}/`) {
+    res.writeHead(301, { Location: `${pathname}/` });
+    res.end();
+    return;
+  }
+
+  if (pathname === "/" || pathname === "/index.html") {
+    serveRepoFile(res, "index.html");
+    return;
+  }
+
+  if (LOCATION_ROUTE_FILES.has(pathname)) {
+    serveRepoFile(res, LOCATION_ROUTE_FILES.get(pathname));
     return;
   }
 
   const STATIC = {
-    "/style.css": { file: "style.css", mime: "text/css; charset=utf-8" },
-    "/main.js": { file: "main.js", mime: "application/javascript; charset=utf-8" },
+    "/style.css": "style.css",
+    "/main.js": "main.js",
+    "/robots.txt": "robots.txt",
   };
 
   if (STATIC[pathname]) {
-    const { file, mime } = STATIC[pathname];
-    serveStaticFile(res, file, mime);
+    serveRepoFile(res, STATIC[pathname]);
+    return;
+  }
+
+  if (pathname.startsWith("/data/")) {
+    const relativePath = pathname.slice(1);
+    serveRepoFile(res, relativePath);
     return;
   }
 
@@ -159,7 +196,7 @@ const server = http.createServer(async (req, res) => {
 
   // API: proxy a calendar by index
   if (pathname === "/api/ical") {
-    const id = parseInt(parsedUrl.query.id, 10);
+    const id = parseInt(requestUrl.searchParams.get("id"), 10);
     if (isNaN(id) || id < 0 || id >= CALENDARS.length) {
       res.writeHead(400, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "Invalid calendar id" }));
@@ -182,9 +219,19 @@ const server = http.createServer(async (req, res) => {
   res.end("Not found");
 });
 
-server.listen(PORT, () => {
-  console.log(`\n✅  iCal proxy running at http://localhost:${PORT}`);
-  console.log(`   Open http://localhost:${PORT} in your browser\n`);
-  CALENDARS.forEach((c, i) => console.log(`   Calendar ${i}: ${c.name}`));
-  console.log();
-});
+if (require.main === module) {
+  server.listen(PORT, () => {
+    console.log(`\n✅  iCal proxy running at http://localhost:${PORT}`);
+    console.log(`   Open http://localhost:${PORT} in your browser\n`);
+    CALENDARS.forEach((c, i) => console.log(`   Calendar ${i}: ${c.name}`));
+    console.log();
+  });
+}
+
+module.exports = {
+  CALENDARS,
+  LOCATION_ROUTES,
+  fetchUrl,
+  normalizePathname,
+  server,
+};
