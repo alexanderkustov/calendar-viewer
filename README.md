@@ -70,7 +70,7 @@ The browser now prefers the static snapshots in `data/` and only uses the proxy 
 
 Limitations:
 - Airbnb page parsing is best-effort and can break if Airbnb changes page structure.
-- GitHub Pages makes the generated `data/` files public. Only use this setup if that visibility is acceptable.
+- The site now advertises `noindex` via `robots.txt`, page metadata, and the local server headers, but GitHub Pages still makes the generated `data/` files public. Only use this setup if that visibility is acceptable.
 
 No authentication is currently required for API routes.
 
