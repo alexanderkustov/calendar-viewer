@@ -11,7 +11,7 @@ A lightweight vanilla JavaScript calendar timeline viewer that can run as a stat
 - Shows monthly occupancy percentages per property in a footer row for each month, calculated across the full month.
 - Splits the view into **Albufeira** and **Portimao** tabs, defaulting to **Albufeira** on `/`.
 - Supports direct location routes for the visible locations, with route-only internal views that hide the tab bar while active.
-- Shows the next three check-out dates for each property in simple text form in the top controls.
+- Shows the remaining check-out dates for each property within that month in the month table headers.
 - Lets you toggle each property on/off in the UI.
 - Shows the current month + next month by default, with a **Load more** button for additional months.
 - Includes a GitHub Actions workflow that refreshes the static calendar snapshots every 2 hours.

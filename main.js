@@ -52,20 +52,23 @@ function bookingTitle(ev) {
   if (/\breserv(?:ed|ation)\b/i.test(summary)) return nightsLabel(bookingNights(ev));
   return summary;
 }
-function nextCheckoutDates(ci, limit = 3, from = startOfDay(new Date())) {
+function remainingCheckoutDatesForMonth(ci, year, month, from = startOfDay(new Date())) {
+  const monthStart = new Date(year, month, 1);
+  const monthEnd = new Date(year, month + 1, 1);
+  const rangeStart = from > monthStart ? from : monthStart;
   const events = calData[ci] || [];
   const seen = new Set();
   const dates = [];
   for (const ev of events) {
     const checkout = startOfDay(ev.end);
-    if (checkout < from) continue;
+    if (checkout < rangeStart || checkout >= monthEnd) continue;
     const key = checkout.getTime();
     if (seen.has(key)) continue;
     seen.add(key);
     dates.push(checkout);
   }
   dates.sort((a, b) => a - b);
-  return dates.slice(0, limit);
+  return dates;
 }
 function calcRangeEnd(today, monthWindow) {
   const monthWindowEnd = new Date(today.getFullYear(), today.getMonth() + monthWindow, 0);
@@ -107,13 +110,13 @@ function activeLocationShowsTabs() {
   return LOCATION_ROUTES.find((location) => location.id === activeLocation)?.showInTabs ?? false;
 }
 
-function nextCheckoutLabel(idx) {
+function remainingCheckoutLabelForMonth(idx, year, month) {
   if (calStatus[idx] === 'loading') return '🚪: loading...';
   if (calStatus[idx] === 'error') return '🚪 unavailable';
 
-  const nextDates = nextCheckoutDates(idx);
-  if (!nextDates.length) return '🚪: No upcoming exits';
-  return `🚪: ${nextDates.map((date) => fmtShort(date)).join(', ')}`;
+  const remainingDates = remainingCheckoutDatesForMonth(idx, year, month);
+  if (!remainingDates.length) return 'No 🚪 this month';
+  return `🚪: ${remainingDates.map((date) => fmtShort(date)).join(', ')}`;
 }
 
 // ─── iCal Parse ─────────────────────────────────────────────────────────────
@@ -310,7 +313,6 @@ function renderToggles() {
       <span class="toggle-dot"></span>
       <span class="toggle-copy">
         <span class="toggle-name">${meta.name}</span>
-        <span class="toggle-meta">${nextCheckoutLabel(idx)}</span>
       </span>
       <span class="toggle-check">✓</span>`;
     toggle.addEventListener('click', () => {
@@ -435,11 +437,16 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
   // Calendar Header Row (Top of columns)
   const headerRow = document.createElement('div');
   headerRow.className = 'dow-header';
-  headerRow.innerHTML = `<div class="cal-header-cell">DATE</div>`;
+  headerRow.innerHTML = `<div class="cal-header-cell is-date">DATE</div>`;
   activeCalendars.forEach(({ meta, idx: ci }) => {
     const th = document.createElement('div');
-    th.className = 'cal-header-cell';
-    th.innerHTML = `<span class="label-dot" style="background:${colorForCalendar(ci)}"></span>${meta.name}`;
+    th.className = `cal-header-cell is-calendar${calStatus[ci] === 'error' ? ' error' : ''}`;
+    th.innerHTML = `
+        <span class="label-dot" style="background:${colorForCalendar(ci)}"></span>
+      <span class="cal-header-copy">
+        <span class="cal-header-name">${meta.name}</span>
+        <span class="cal-header-meta">${remainingCheckoutLabelForMonth(ci, year, month)}</span>
+      </span>`;
     headerRow.appendChild(th);
   });
   card.appendChild(headerRow);

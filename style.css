@@ -387,13 +387,49 @@ h1 {
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   color: var(--muted);
-  padding: 0.85rem 0.2rem;
+  padding: 0.85rem 0.75rem;
   font-weight: 700;
   border-left: 1px solid var(--border);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 0.35rem;
+}
+
+.cal-header-cell.is-date {
+  justify-content: center;
+  padding-inline: 0.2rem;
+  border-left: 0;
+}
+
+.cal-header-cell.is-calendar {
+  text-align: left;
+}
+
+.cal-header-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.cal-header-name {
+  color: var(--text);
+}
+
+.cal-header-meta {
+  font-family: 'Jost', sans-serif;
+  font-size: 0.58rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+  line-height: 1.35;
+  text-transform: none;
+  color: var(--muted);
+}
+
+.cal-header-cell.error .cal-header-meta {
+  color: var(--checkout-color);
 }
 
 /* ── Date cell (Left column) ────────────────────────────────────────────── */
@@ -683,7 +719,6 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.08rem;
   min-width: 0;
 }
 
@@ -701,14 +736,6 @@ h1 {
   transition: color 0.2s;
 }
 
-.cal-toggle .toggle-meta {
-  font-size: 0.56rem;
-  letter-spacing: 0.03em;
-  text-transform: none;
-  color: var(--muted);
-  white-space: normal;
-}
-
 .cal-toggle .toggle-check {
   font-size: 0.55rem;
   opacity: 0;
@@ -722,10 +749,6 @@ h1 {
 .cal-toggle.active {
   border-color: var(--cal-color);
   background: var(--surface);
-  color: var(--text);
-}
-
-.cal-toggle.active .toggle-meta {
   color: var(--text);
 }
 
@@ -750,10 +773,6 @@ h1 {
 
 .cal-toggle.error .toggle-dot {
   background: var(--checkout-color);
-}
-
-.cal-toggle.error .toggle-meta {
-  color: var(--checkout-color);
 }
 
 /* ── Month heading ───────────────────────────────────────────────────────── */
@@ -839,5 +858,13 @@ h1 {
 
   .month-title {
     font-size: 1.7rem;
+  }
+
+  .cal-header-cell.is-calendar {
+    padding-inline: 0.55rem;
+  }
+
+  .cal-header-meta {
+    font-size: 0.54rem;
   }
 }
