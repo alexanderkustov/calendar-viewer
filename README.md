@@ -51,7 +51,7 @@ Then open:
 - **Property grouping and tabs**: edit `CALENDARS_META` in `main.js` to control how one or more source feeds map to a single property row and location tab; keep each `location` value aligned with `LOCATION_ROUTES`.
 - **Maximum time horizon**: edit `MAX_DAYS_AHEAD` in `main.js` (currently `180`).
 - **Initial months shown**: edit `INITIAL_VISIBLE_MONTHS` in `main.js` (currently `2`).
-- **Static refresh**: run `npm run sync:calendars` to refresh the committed `data/` snapshots manually. The sync is all-or-nothing: a successful run replaces the existing `calendar-*.ics`, `calendars.json`, and `manifest.json` files, while a failed run leaves the previous snapshot set in place.
+- **Static refresh**: run `npm run sync:calendars` to refresh the committed `data/` snapshots manually. The sync writes into a staged directory and swaps files only after completion; if a calendar fetch fails, the previous `calendar-<id>.ics` snapshot is preserved for that calendar and the failure is recorded in `data/manifest.json` under `staleCalendars`.
 
 ## Page routes
 

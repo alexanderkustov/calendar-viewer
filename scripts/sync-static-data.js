@@ -31,6 +31,18 @@ function validateCalendarSnapshot(icsData) {
   }
 }
 
+function formatErrorMessage(error) {
+  if (error && typeof error.message === "string" && error.message.trim()) {
+    return error.message.trim();
+  }
+
+  if (typeof error === "string" && error.trim()) {
+    return error.trim();
+  }
+
+  return "Unknown fetch error";
+}
+
 async function fetchWithTimeout(targetUrl, timeoutMs = FETCH_TIMEOUT_MS, fetchCalendar = fetchUrl) {
   let timeoutId;
 
@@ -75,12 +87,24 @@ function buildCalendarsIndex(calendars) {
   }));
 }
 
-function buildManifest(calendars, now = new Date()) {
+function buildManifest(calendars, staleCalendars = [], now = new Date()) {
   return {
     generatedAt: now.toISOString(),
     calendarCount: calendars.length,
-    staleCalendars: [],
+    staleCalendars,
   };
+}
+
+async function restoreExistingCalendarSnapshot({ id, targetDir, existingDataDir }) {
+  const filename = `calendar-${id}.ics`;
+  const existingPath = path.join(existingDataDir, filename);
+  const replacementPath = path.join(targetDir, filename);
+
+  if (!(await pathExists(existingPath))) {
+    throw new Error("No previous snapshot available for fallback");
+  }
+
+  await fs.copyFile(existingPath, replacementPath);
 }
 
 async function writeSnapshotSet(
@@ -89,12 +113,26 @@ async function writeSnapshotSet(
 ) {
   await fs.mkdir(targetDir, { recursive: true });
   await copyPreservedDataEntries(existingDataDir, targetDir);
+  const staleCalendars = [];
 
   for (const [id, calendar] of calendars.entries()) {
     console.log(`Fetching [${id}] ${calendar.name}`);
-    const icsData = await fetchWithTimeout(calendar.url, FETCH_TIMEOUT_MS, fetchCalendar);
-    validateCalendarSnapshot(icsData);
-    await fs.writeFile(path.join(targetDir, `calendar-${id}.ics`), icsData, "utf8");
+    try {
+      const icsData = await fetchWithTimeout(calendar.url, FETCH_TIMEOUT_MS, fetchCalendar);
+      validateCalendarSnapshot(icsData);
+      await fs.writeFile(path.join(targetDir, `calendar-${id}.ics`), icsData, "utf8");
+    } catch (error) {
+      const reason = formatErrorMessage(error);
+      console.warn(
+        `Failed to refresh [${id}] ${calendar.name}; preserving previous snapshot. ${reason}`
+      );
+      await restoreExistingCalendarSnapshot({ id, targetDir, existingDataDir });
+      staleCalendars.push({
+        id,
+        name: calendar.name,
+        reason,
+      });
+    }
   }
 
   await fs.writeFile(
@@ -104,7 +142,7 @@ async function writeSnapshotSet(
   );
   await fs.writeFile(
     path.join(targetDir, "manifest.json"),
-    `${JSON.stringify(buildManifest(calendars), null, 2)}\n`,
+    `${JSON.stringify(buildManifest(calendars, staleCalendars), null, 2)}\n`,
     "utf8"
   );
 }
@@ -173,7 +211,9 @@ module.exports = {
   buildCalendarsIndex,
   buildManifest,
   copyPreservedDataEntries,
+  formatErrorMessage,
   isManagedDataEntry,
+  restoreExistingCalendarSnapshot,
   replaceDataDirectory,
   syncStaticData,
   validateCalendarSnapshot,
