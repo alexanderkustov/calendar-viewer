@@ -257,6 +257,7 @@ async function loadAll() {
   }
 
   setStatus('done');
+  updateLastUpdatedLabel();
   renderCalendar();
 }
 
@@ -267,6 +268,19 @@ function setStatus(state) {
 function setCalStatus(idx, state) {
   calStatus[idx] = state;
   renderControls();
+}
+
+function updateLastUpdatedLabel(date = new Date()) {
+  const label = document.getElementById('lastUpdated');
+  if (!label) return;
+  const timestamp = date.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  label.textContent = `Last updated: ${timestamp}`;
 }
 
 function renderControls() {
