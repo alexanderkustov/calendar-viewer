@@ -257,7 +257,8 @@ async function loadAll() {
   }
 
   setStatus('done');
-  updateLastUpdatedLabel();
+  const lastSyncAt = await fetchLastSyncTimestamp();
+  updateLastUpdatedLabel(lastSyncAt);
   renderCalendar();
 }
 
@@ -270,9 +271,28 @@ function setCalStatus(idx, state) {
   renderControls();
 }
 
-function updateLastUpdatedLabel(date = new Date()) {
+async function fetchLastSyncTimestamp() {
+  try {
+    const response = await fetch(assetUrl(`${STATIC_DATA_DIR}/manifest.json`), { cache: 'no-store' });
+    if (!response.ok) return null;
+    const manifest = await response.json();
+    if (!manifest?.generatedAt) return null;
+
+    const generatedAt = new Date(manifest.generatedAt);
+    if (Number.isNaN(generatedAt.getTime())) return null;
+    return generatedAt;
+  } catch {
+    return null;
+  }
+}
+
+function updateLastUpdatedLabel(date = null) {
   const label = document.getElementById('lastUpdated');
   if (!label) return;
+  if (!date) {
+    label.textContent = 'Last updated: unknown';
+    return;
+  }
   const timestamp = date.toLocaleString('en-GB', {
     day: '2-digit',
     month: 'short',

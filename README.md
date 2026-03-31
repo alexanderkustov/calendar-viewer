@@ -14,6 +14,7 @@ A lightweight vanilla JavaScript calendar timeline viewer that can run as a stat
 - Shows the remaining check-out dates for each property within that month in the month table headers.
 - Lets you toggle each property on/off in the UI.
 - Shows the current month + next month by default, with a **Load more** button for additional months.
+- Displays **Last updated** using the timestamp from `data/manifest.json` (`generatedAt`), which is written by the calendar sync workflow.
 - Includes a GitHub Actions workflow that refreshes the static calendar snapshots every 2 hours.
 
 ## Project structure
