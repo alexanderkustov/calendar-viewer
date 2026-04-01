@@ -45,6 +45,27 @@ Then open:
 - `http://localhost:3000/portimao/`
 - `http://localhost:3000/mama/`
 
+## How Calendar Refreshing Works
+
+The application uses a hybrid approach to ensure calendar data is as current as possible without overwhelming external providers or blocking the page load.
+
+### 1. Static Snapshots (Background Sync)
+- A GitHub Actions workflow runs every hour, executing `npm run sync:calendars` (`scripts/sync-static-data.js`).
+- This script pulls the latest iCal feeds for every configured source and safely writes them into the `data/` directory (e.g., `data/calendar-0.ics`).
+- If a specific calendar feed fails or times out, the script preserves its previous snapshot and records the failure in `data/manifest.json`.
+- The new snapshots form the site's default data source, updated frequently in the background.
+
+### 2. Frontend Data Loading (`main.js`)
+On page load, the frontend decides whether to use the pre-generated static snapshots or query the live API for fresh data:
+- It fetches `data/manifest.json` to check the `generatedAt` timestamp.
+- If the snapshot is **older than 75 minutes**, the frontend considers it stale.
+- **Normal Load**: If the snapshot is fresh, the app loads `data/calendar-<id>.ics`. If any static file fails to load, it automatically falls back to the live API (`/api/ical?id=<id>`).
+- **Stale Load**: If the snapshot is stale, the app flips the priority and fetches from the live API first. If the live API fails, it falls back to the static snapshot.
+
+### 3. Manual and Auto-Refreshes
+- **Manual Refresh**: Clicking the "Refresh" button forces a live fetch for all active calendars `loadAll({ preferLive: true })`.
+- **Auto-Refresh**: If the user leaves the tab open, a background timer automatically triggers a live refresh every 60 minutes, bringing in fresh bookings without a full page reload.
+
 ## Configuration notes
 
 - **Port**: set `PORT` environment variable to override the default (`3000`).

@@ -80,10 +80,13 @@ const CALENDARS = [
 ];
 
 function fetchUrl(targetUrl) {
+  const sep = targetUrl.includes("?") ? "&" : "?";
+  const bustedUrl = `${targetUrl}${sep}_cb=${Date.now()}`;
+
   return new Promise((resolve, reject) => {
     https
       .get(
-        targetUrl,
+        bustedUrl,
         {
           headers: {
             "User-Agent": "Mozilla/5.0 (compatible; iCalFetcher/1.0)",

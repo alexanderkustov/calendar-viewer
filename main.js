@@ -248,8 +248,9 @@ async function fetchCalendarText(url) {
  * @returns {Promise<{ text: string, source: 'live' | 'static' }>}
  */
 async function loadSourceCalendar(sourceId, { preferLive = false } = {}) {
-  const staticUrl = assetUrl(`${STATIC_DATA_DIR}/calendar-${sourceId}.ics`);
-  const liveUrl = `/api/ical?id=${sourceId}`;
+  const cb = Date.now();
+  const staticUrl = assetUrl(`${STATIC_DATA_DIR}/calendar-${sourceId}.ics?_cb=${cb}`);
+  const liveUrl = `/api/ical?id=${sourceId}&_cb=${cb}`;
   const sources = preferLive
     ? [{ source: 'live', url: liveUrl }, { source: 'static', url: staticUrl }]
     : [{ source: 'static', url: staticUrl }, { source: 'live', url: liveUrl }];
@@ -327,7 +328,8 @@ function setCalStatus(idx, state) {
 
 async function fetchLastSyncTimestamp() {
   try {
-    const response = await fetch(assetUrl(`${STATIC_DATA_DIR}/manifest.json`), { cache: 'no-store' });
+    const cb = Date.now();
+    const response = await fetch(assetUrl(`${STATIC_DATA_DIR}/manifest.json?_cb=${cb}`), { cache: 'no-store' });
     if (!response.ok) return null;
     const manifest = await response.json();
     if (!manifest?.generatedAt) return null;
