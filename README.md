@@ -15,7 +15,8 @@ A lightweight vanilla JavaScript calendar timeline viewer that can run as a stat
 - Lets you toggle each property on/off in the UI.
 - Shows the current month + next month by default, with a **Load more** button for additional months.
 - Displays **Last updated** using the timestamp from `data/manifest.json` (`generatedAt`), which is written by the calendar sync workflow.
-- Includes a GitHub Actions workflow that refreshes the static calendar snapshots every 2 hours.
+- Includes a GitHub Actions workflow that refreshes the static calendar snapshots every hour.
+- Runs an hourly in-browser refresh for open tabs and prefers live API data when a snapshot is stale or the user clicks **Refresh**.
 
 ## Project structure
 
@@ -67,7 +68,7 @@ Then open:
 - `GET /api/calendars` — list of source calendar IDs and names.
 - `GET /api/ical?id=<index>` — proxied iCal file for a source calendar.
 
-The browser now prefers the static snapshots in `data/` and only uses the proxy when those files are missing during local development.
+The browser prefers the static snapshots in `data/` on first load, but manual refreshes and stale snapshots prefer the live proxy first and fall back to the committed data files if the proxy is unavailable.
 
 Limitations:
 - Airbnb page parsing is best-effort and can break if Airbnb changes page structure.
@@ -80,4 +81,4 @@ No authentication is currently required for API routes.
 1. Push the repository to GitHub.
 2. In the repository settings, enable GitHub Pages with **GitHub Actions** as the source.
 3. Run the **Refresh Calendars** workflow once to create the first `data/` snapshots if they are not already committed.
-4. The **Deploy Pages** workflow publishes the site on every push, and the refresh workflow keeps `data/` updated every 2 hours.
+4. The **Deploy Pages** workflow publishes the site on every push, and the refresh workflow keeps `data/` updated every hour.

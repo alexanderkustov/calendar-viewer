@@ -2,6 +2,8 @@ const COLORS = ['#3E92CF', '#60C6C9', '#1A558A', '#9B51E0', '#27AE60', '#F2994A'
 const MAX_DAYS_AHEAD = 180;
 const INITIAL_VISIBLE_MONTHS = 2;
 const LOAD_MORE_MONTHS = 1;
+const SNAPSHOT_STALE_AFTER_MS = 75 * 60 * 1000;
+const AUTO_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
 const STATIC_DATA_DIR = 'data';
 const APP_ROOT = document.documentElement.dataset.appRoot || '.';
 const APP_ROOT_URL = new URL(APP_ROOT.endsWith('/') ? APP_ROOT : `${APP_ROOT}/`, window.location.href);
@@ -21,12 +23,12 @@ const CALENDARS_META = [
   { name: "Portimao G137", location: 'portimao', sources: [5] },
   { name: "Raul 24 - 1", location: 'mama', sources: [6] },
   { name: "Raul 24 - 3", location: 'mama', sources: [7] },
-  { name: "Eulalia", location: 'mama', sources: [8] },
-  { name: "Balaia 404", location: 'mama', sources: [9] },
-  { name: "Balaia 405", location: 'mama', sources: [10] },
-  { name: "Onda Verde", location: 'mama', sources: [11] },
-  { name: "Aljezur", location: 'mama', sources: [12] },
-  { name: "Pescadores", location: 'mama', sources: [13] },
+  { name: "Balaia 404", location: 'mama', sources: [8] },
+  { name: "Balaia 405", location: 'mama', sources: [9] },
+  { name: "Onda Verde", location: 'mama', sources: [10] },
+  { name: "Aljezur", location: 'mama', sources: [11] },
+  { name: "Pescadores", location: 'mama', sources: [12] },
+  { name: "Paraiso", location: 'mama', sources: [13] },
   { name: "Eulalia", location: 'mama', sources: [14] }
 ];
 
@@ -35,6 +37,7 @@ let calStatus = new Array(CALENDARS_META.length).fill('idle');
 let visible = new Array(CALENDARS_META.length).fill(true); // toggle state
 let activeLocation = LOCATION_TABS[0]?.id || LOCATION_ROUTES[0]?.id || null;
 let visibleMonths = INITIAL_VISIBLE_MONTHS;
+let autoRefreshTimerId = null;
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -206,21 +209,71 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   renderControls();
   loadAll();
+  startAutoRefresh();
 });
 
-async function loadSourceCalendar(sourceId) {
-  const staticRes = await fetch(assetUrl(`${STATIC_DATA_DIR}/calendar-${sourceId}.ics`), { cache: 'no-store' });
-  if (staticRes.ok) {
-    return staticRes.text();
+/**
+ * Returns whether the generated snapshot is old enough that live calendar data
+ * should be preferred for the next load.
+ * @param {Date|null} generatedAt
+ * @param {Date} [now=new Date()]
+ * @returns {boolean}
+ */
+function isSnapshotStale(generatedAt, now = new Date()) {
+  if (!(generatedAt instanceof Date) || Number.isNaN(generatedAt.getTime())) {
+    return true;
   }
 
-  const apiRes = await fetch(`/api/ical?id=${sourceId}`);
-  if (!apiRes.ok) throw new Error(`HTTP ${apiRes.status}`);
-  return apiRes.text();
+  return now.getTime() - generatedAt.getTime() > SNAPSHOT_STALE_AFTER_MS;
 }
 
-async function loadAll() {
+/**
+ * Fetches calendar text from the provided URL.
+ * @param {string} url
+ * @returns {Promise<string>}
+ */
+async function fetchCalendarText(url) {
+  const response = await fetch(url, { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  return response.text();
+}
+
+/**
+ * Loads a source calendar from either the generated snapshot or the live proxy.
+ * @param {number} sourceId
+ * @param {{ preferLive?: boolean }} [options]
+ * @returns {Promise<{ text: string, source: 'live' | 'static' }>}
+ */
+async function loadSourceCalendar(sourceId, { preferLive = false } = {}) {
+  const staticUrl = assetUrl(`${STATIC_DATA_DIR}/calendar-${sourceId}.ics`);
+  const liveUrl = `/api/ical?id=${sourceId}`;
+  const sources = preferLive
+    ? [{ source: 'live', url: liveUrl }, { source: 'static', url: staticUrl }]
+    : [{ source: 'static', url: staticUrl }, { source: 'live', url: liveUrl }];
+  let lastError = null;
+
+  for (const candidate of sources) {
+    try {
+      const text = await fetchCalendarText(candidate.url);
+      return {
+        text,
+        source: candidate.source,
+      };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error('Unable to load calendar');
+}
+
+async function loadAll({ preferLive = false } = {}) {
   setStatus('loading');
+  const lastSyncAt = await fetchLastSyncTimestamp();
+  const shouldPreferLive = preferLive || isSnapshotStale(lastSyncAt);
   const activeCalendars = calendarsForLocation(activeLocation);
   calData = new Array(CALENDARS_META.length).fill(null);
   calStatus = new Array(CALENDARS_META.length).fill('idle');
@@ -230,14 +283,16 @@ async function loadAll() {
   document.getElementById('errorBanner').style.display = 'none';
   renderControls();
   const errors = [];
+  let usedLiveSource = false;
 
   await Promise.all(activeCalendars.map(async ({ meta, idx }) => {
     try {
       const allEvents = [];
       for (const sourceId of meta.sources) {
-        const text = await loadSourceCalendar(sourceId);
-        if (!text.includes('BEGIN:VCALENDAR')) throw new Error('Not a valid iCal response');
-        allEvents.push(...parseICS(text));
+        const result = await loadSourceCalendar(sourceId, { preferLive: shouldPreferLive });
+        if (!result.text.includes('BEGIN:VCALENDAR')) throw new Error('Not a valid iCal response');
+        if (result.source === 'live') usedLiveSource = true;
+        allEvents.push(...parseICS(result.text));
       }
       calData[idx] = allEvents;
       setCalStatus(idx, 'loaded');
@@ -257,8 +312,7 @@ async function loadAll() {
   }
 
   setStatus('done');
-  const lastSyncAt = await fetchLastSyncTimestamp();
-  updateLastUpdatedLabel(lastSyncAt);
+  updateLastUpdatedLabel(lastSyncAt, { usedLiveSource });
   renderCalendar();
 }
 
@@ -286,11 +340,11 @@ async function fetchLastSyncTimestamp() {
   }
 }
 
-function updateLastUpdatedLabel(date = null) {
+function updateLastUpdatedLabel(date = null, { usedLiveSource = false } = {}) {
   const label = document.getElementById('lastUpdated');
   if (!label) return;
   if (!date) {
-    label.textContent = 'Last updated: unknown';
+    label.textContent = usedLiveSource ? 'Last updated: live data' : 'Last updated: unknown';
     return;
   }
   const timestamp = date.toLocaleString('en-GB', {
@@ -300,7 +354,24 @@ function updateLastUpdatedLabel(date = null) {
     hour: '2-digit',
     minute: '2-digit'
   });
-  label.textContent = `Last updated: ${timestamp}`;
+  label.textContent = `Last updated: ${timestamp}${usedLiveSource ? ' (live refresh in use)' : ''}`;
+}
+
+/**
+ * Starts an hourly background refresh so an open tab can pick up newer
+ * bookings without waiting for a full page reload.
+ * @returns {void}
+ */
+function startAutoRefresh() {
+  if (autoRefreshTimerId) {
+    window.clearInterval(autoRefreshTimerId);
+  }
+
+  autoRefreshTimerId = window.setInterval(() => {
+    loadAll({ preferLive: true }).catch((error) => {
+      console.error('Auto-refresh failed:', error);
+    });
+  }, AUTO_REFRESH_INTERVAL_MS);
 }
 
 function renderControls() {
