@@ -5,6 +5,8 @@ const { CALENDARS, fetchUrl } = require("../server.js");
 
 const DATA_DIR = path.join(__dirname, "..", "data");
 const FETCH_TIMEOUT_MS = 30_000;
+const FETCH_RETRIES = 2;
+const FETCH_RETRY_DELAY_MS = 1_500;
 const MANAGED_DATA_FILES = new Set(["calendars.json", "manifest.json"]);
 const CALENDAR_FILE_PATTERN = /^calendar-\d+\.ics$/;
 
@@ -60,6 +62,45 @@ async function fetchWithTimeout(targetUrl, timeoutMs = FETCH_TIMEOUT_MS, fetchCa
   }
 }
 
+function sleep(delayMs) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
+}
+
+async function fetchWithRetry(
+  targetUrl,
+  {
+    timeoutMs = FETCH_TIMEOUT_MS,
+    retries = FETCH_RETRIES,
+    retryDelayMs = FETCH_RETRY_DELAY_MS,
+    fetchCalendar = fetchUrl,
+    label = "calendar"
+  } = {}
+) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= retries + 1; attempt += 1) {
+    try {
+      return await fetchWithTimeout(targetUrl, timeoutMs, fetchCalendar);
+    } catch (error) {
+      lastError = error;
+
+      if (attempt > retries) {
+        break;
+      }
+
+      const reason = formatErrorMessage(error);
+      console.warn(
+        `Fetch attempt ${attempt} failed for ${label}; retrying in ${retryDelayMs}ms. ${reason}`
+      );
+      await sleep(retryDelayMs * attempt);
+    }
+  }
+
+  throw lastError;
+}
+
 async function copyPreservedDataEntries(sourceDir, targetDir) {
   if (!(await pathExists(sourceDir))) {
     return;
@@ -91,6 +132,7 @@ function buildManifest(calendars, staleCalendars = [], now = new Date()) {
   return {
     generatedAt: now.toISOString(),
     calendarCount: calendars.length,
+    staleCalendarCount: staleCalendars.length,
     staleCalendars,
   };
 }
@@ -118,7 +160,13 @@ async function writeSnapshotSet(
   for (const [id, calendar] of calendars.entries()) {
     console.log(`Fetching [${id}] ${calendar.name}`);
     try {
-      const icsData = await fetchWithTimeout(calendar.url, FETCH_TIMEOUT_MS, fetchCalendar);
+      const icsData = await fetchWithRetry(calendar.url, {
+        timeoutMs: FETCH_TIMEOUT_MS,
+        retries: FETCH_RETRIES,
+        retryDelayMs: FETCH_RETRY_DELAY_MS,
+        fetchCalendar,
+        label: `[${id}] ${calendar.name}`
+      });
       validateCalendarSnapshot(icsData);
       await fs.writeFile(path.join(targetDir, `calendar-${id}.ics`), icsData, "utf8");
     } catch (error) {
@@ -207,10 +255,13 @@ if (require.main === module) {
 
 module.exports = {
   DATA_DIR,
+  FETCH_RETRIES,
+  FETCH_RETRY_DELAY_MS,
   FETCH_TIMEOUT_MS,
   buildCalendarsIndex,
   buildManifest,
   copyPreservedDataEntries,
+  fetchWithRetry,
   formatErrorMessage,
   isManagedDataEntry,
   restoreExistingCalendarSnapshot,

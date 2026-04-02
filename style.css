@@ -859,6 +859,12 @@ h1 {
     margin-left: 0;
   }
 
+  .last-updated {
+    flex-basis: 100%;
+    text-align: center;
+    white-space: normal;
+  }
+
   .month-heading {
     margin-bottom: 0.7rem;
     padding-bottom: 0.35rem;

@@ -46,6 +46,16 @@ function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); retu
 function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
 function fmtFull(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
 function fmtShort(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
+function formatTimestamp(d) {
+  return d.toLocaleString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  });
+}
 function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
 function bookingNights(ev) { return Math.max(1, Math.round((startOfDay(ev.end) - startOfDay(ev.start)) / 86400000)); }
 function nightsLabel(nights) { return `${nights} night${nights !== 1 ? 's' : ''}`; }
@@ -273,8 +283,10 @@ async function loadSourceCalendar(sourceId, { preferLive = false } = {}) {
 
 async function loadAll({ preferLive = false } = {}) {
   setStatus('loading');
-  const lastSyncAt = await fetchLastSyncTimestamp();
-  const shouldPreferLive = preferLive || isSnapshotStale(lastSyncAt);
+  const syncManifest = await fetchSyncManifest();
+  const lastSyncAt = syncManifest?.generatedAt || null;
+  const snapshotIsStale = isSnapshotStale(lastSyncAt);
+  const shouldPreferLive = preferLive || snapshotIsStale;
   const activeCalendars = calendarsForLocation(activeLocation);
   calData = new Array(CALENDARS_META.length).fill(null);
   calStatus = new Array(CALENDARS_META.length).fill('idle');
@@ -313,7 +325,12 @@ async function loadAll({ preferLive = false } = {}) {
   }
 
   setStatus('done');
-  updateLastUpdatedLabel(lastSyncAt, { usedLiveSource });
+  updateLastUpdatedLabel({
+    snapshotGeneratedAt: lastSyncAt,
+    snapshotIsStale,
+    liveRefreshedAt: usedLiveSource ? new Date() : null,
+    staleCalendars: syncManifest?.staleCalendars || []
+  });
   renderCalendar();
 }
 
@@ -326,37 +343,69 @@ function setCalStatus(idx, state) {
   renderControls();
 }
 
-async function fetchLastSyncTimestamp() {
+async function fetchSyncManifest() {
   try {
     const cb = Date.now();
     const response = await fetch(assetUrl(`${STATIC_DATA_DIR}/manifest.json?_cb=${cb}`), { cache: 'no-store' });
     if (!response.ok) return null;
     const manifest = await response.json();
-    if (!manifest?.generatedAt) return null;
+    const generatedAt = manifest?.generatedAt ? new Date(manifest.generatedAt) : null;
 
-    const generatedAt = new Date(manifest.generatedAt);
-    if (Number.isNaN(generatedAt.getTime())) return null;
-    return generatedAt;
+    return {
+      generatedAt:
+        generatedAt instanceof Date && !Number.isNaN(generatedAt.getTime())
+          ? generatedAt
+          : null,
+      staleCalendars: Array.isArray(manifest?.staleCalendars) ? manifest.staleCalendars : []
+    };
   } catch {
     return null;
   }
 }
 
-function updateLastUpdatedLabel(date = null, { usedLiveSource = false } = {}) {
+function updateLastUpdatedLabel({
+  snapshotGeneratedAt = null,
+  snapshotIsStale = false,
+  liveRefreshedAt = null,
+  staleCalendars = []
+} = {}) {
   const label = document.getElementById('lastUpdated');
   if (!label) return;
-  if (!date) {
-    label.textContent = usedLiveSource ? 'Last updated: live data' : 'Last updated: unknown';
+
+  const staleCount = Array.isArray(staleCalendars) ? staleCalendars.length : 0;
+  const preservedSuffix = staleCount ? ` • ${staleCount} preserved` : '';
+  const titleParts = [];
+
+  if (liveRefreshedAt instanceof Date && !Number.isNaN(liveRefreshedAt.getTime())) {
+    label.textContent = `Live refreshed: ${formatTimestamp(liveRefreshedAt)}${preservedSuffix}`;
+    titleParts.push(`Live refreshed: ${formatTimestamp(liveRefreshedAt)}`);
+    if (snapshotGeneratedAt instanceof Date && !Number.isNaN(snapshotGeneratedAt.getTime())) {
+      titleParts.push(`Snapshot updated: ${formatTimestamp(snapshotGeneratedAt)}`);
+    }
+  } else if (snapshotGeneratedAt instanceof Date && !Number.isNaN(snapshotGeneratedAt.getTime())) {
+    label.textContent = `Snapshot updated: ${formatTimestamp(snapshotGeneratedAt)}${snapshotIsStale ? ' (stale)' : ''}${preservedSuffix}`;
+    titleParts.push(`Snapshot updated: ${formatTimestamp(snapshotGeneratedAt)}`);
+  } else {
+    label.textContent = staleCount ? `Last updated: unknown${preservedSuffix}` : 'Last updated: unknown';
+  }
+
+  if (snapshotIsStale) {
+    titleParts.push('Static snapshot is older than the live-refresh threshold.');
+  }
+
+  if (staleCount) {
+    const staleNames = staleCalendars
+      .map((calendar) => calendar?.name || `Source ${calendar?.id ?? '?'}`)
+      .join(', ');
+    titleParts.push(`Preserved snapshot sources: ${staleNames}`);
+  }
+
+  label.title = titleParts.join(' ');
+
+  if (!label.textContent) {
+    label.textContent = 'Last updated: unknown';
     return;
   }
-  const timestamp = date.toLocaleString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-  label.textContent = `Last updated: ${timestamp}${usedLiveSource ? ' (live refresh in use)' : ''}`;
 }
 
 /**

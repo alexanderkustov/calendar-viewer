@@ -14,7 +14,7 @@ A lightweight vanilla JavaScript calendar timeline viewer that can run as a stat
 - Shows the remaining check-out dates for each property within that month in the month table headers.
 - Lets you toggle each property on/off in the UI.
 - Shows the current month + next month by default, with a **Load more** button for additional months.
-- Displays **Last updated** using the timestamp from `data/manifest.json` (`generatedAt`), which is written by the calendar sync workflow.
+- Displays **Snapshot updated** or **Live refreshed** in the status line, using the source actually in use and the browser's local timezone.
 - Includes a GitHub Actions workflow that refreshes the static calendar snapshots every hour.
 - Runs an hourly in-browser refresh for open tabs and prefers live API data when a snapshot is stale or the user clicks **Refresh**.
 
@@ -25,7 +25,7 @@ A lightweight vanilla JavaScript calendar timeline viewer that can run as a stat
 - `albufeira/index.html`, `portimao/index.html`, `mama/index.html` — static route entrypoints for GitHub Pages.
 - `main.js` — iCal parsing, data loading, occupancy calculation, and calendar rendering.
 - `style.css` — app styling.
-- `scripts/sync-static-data.js` — fetches remote iCal feeds into a staged directory and swaps the managed snapshot files into `data/` only after the full refresh succeeds.
+- `scripts/sync-static-data.js` — fetches remote iCal feeds into a staged directory, retries transient failures, and swaps the managed snapshot files into `data/` only after the full refresh succeeds.
 
 ## Prerequisites
 
@@ -51,8 +51,8 @@ The application uses a hybrid approach to ensure calendar data is as current as 
 
 ### 1. Static Snapshots (Background Sync)
 - A GitHub Actions workflow runs every hour, executing `npm run sync:calendars` (`scripts/sync-static-data.js`).
-- This script pulls the latest iCal feeds for every configured source and safely writes them into the `data/` directory (e.g., `data/calendar-0.ics`).
-- If a specific calendar feed fails or times out, the script preserves its previous snapshot and records the failure in `data/manifest.json`.
+- This script pulls the latest iCal feeds for every configured source, retries transient fetch failures, and safely writes them into the `data/` directory (e.g., `data/calendar-0.ics`).
+- If a specific calendar feed still fails or times out, the script preserves its previous snapshot and records the failure in `data/manifest.json`.
 - The new snapshots form the site's default data source, updated frequently in the background.
 
 ### 2. Frontend Data Loading (`main.js`)
@@ -61,6 +61,7 @@ On page load, the frontend decides whether to use the pre-generated static snaps
 - If the snapshot is **older than 75 minutes**, the frontend considers it stale.
 - **Normal Load**: If the snapshot is fresh, the app loads `data/calendar-<id>.ics`. If any static file fails to load, it automatically falls back to the live API (`/api/ical?id=<id>`).
 - **Stale Load**: If the snapshot is stale, the app flips the priority and fetches from the live API first. If the live API fails, it falls back to the static snapshot.
+- The status line reflects the source actually used: `Snapshot updated` for static data, `Live refreshed` when a live fetch supplied the data, and a preserved-count suffix when some sources were carried over from an earlier snapshot.
 
 ### 3. Manual and Auto-Refreshes
 - **Manual Refresh**: Clicking the "Refresh" button forces a live fetch for all active calendars `loadAll({ preferLive: true })`.
@@ -74,7 +75,7 @@ On page load, the frontend decides whether to use the pre-generated static snaps
 - **Property grouping and tabs**: edit `CALENDARS_META` in `main.js` to control how one or more source feeds map to a single property row and location tab; keep each `location` value aligned with `LOCATION_ROUTES`.
 - **Maximum time horizon**: edit `MAX_DAYS_AHEAD` in `main.js` (currently `180`).
 - **Initial months shown**: edit `INITIAL_VISIBLE_MONTHS` in `main.js` (currently `2`).
-- **Static refresh**: run `npm run sync:calendars` to refresh the committed `data/` snapshots manually. The sync writes into a staged directory and swaps files only after completion; if a calendar fetch fails, the previous `calendar-<id>.ics` snapshot is preserved for that calendar and the failure is recorded in `data/manifest.json` under `staleCalendars`.
+- **Static refresh**: run `npm run sync:calendars` to refresh the committed `data/` snapshots manually. The sync writes into a staged directory and swaps files only after completion; if a calendar fetch fails after retries, the previous `calendar-<id>.ics` snapshot is preserved for that calendar and the failure is recorded in `data/manifest.json` under `staleCalendars`.
 
 ## Page routes
 
@@ -102,4 +103,4 @@ No authentication is currently required for API routes.
 1. Push the repository to GitHub.
 2. In the repository settings, enable GitHub Pages with **GitHub Actions** as the source.
 3. Run the **Refresh Calendars** workflow once to create the first `data/` snapshots if they are not already committed.
-4. The **Deploy Pages** workflow publishes the site on every push, and the refresh workflow keeps `data/` updated every hour.
+4. The **Deploy Pages** workflow publishes the site on every push, and the refresh workflow keeps `data/` updated every hour with concurrency enabled so overlapping runs do not fight each other.
