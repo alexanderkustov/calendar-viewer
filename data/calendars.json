@@ -2,76 +2,76 @@
   {
     "id": 0,
     "name": "Pardais 205",
-    "sourcePath": "calendar-0.ics"
+    "sourcePath": "calendar-0.json"
   },
   {
     "id": 1,
     "name": "Silchoro 1205",
-    "sourcePath": "calendar-1.ics"
+    "sourcePath": "calendar-1.json"
   },
   {
     "id": 2,
     "name": "Antero A7",
-    "sourcePath": "calendar-2.ics"
+    "sourcePath": "calendar-2.json"
   },
   {
     "id": 3,
     "name": "Antero A7 booking",
-    "sourcePath": "calendar-3.ics"
+    "sourcePath": "calendar-3.json"
   },
   {
     "id": 4,
     "name": "Portimao J138",
-    "sourcePath": "calendar-4.ics"
+    "sourcePath": "calendar-4.json"
   },
   {
     "id": 5,
     "name": "Portimao G137",
-    "sourcePath": "calendar-5.ics"
+    "sourcePath": "calendar-5.json"
   },
   {
     "id": 6,
     "name": "Raul 24 - 1",
-    "sourcePath": "calendar-6.ics"
+    "sourcePath": "calendar-6.json"
   },
   {
     "id": 7,
     "name": "Raul 24 - 3",
-    "sourcePath": "calendar-7.ics"
+    "sourcePath": "calendar-7.json"
   },
   {
     "id": 8,
     "name": "Balaia 404",
-    "sourcePath": "calendar-8.ics"
+    "sourcePath": "calendar-8.json"
   },
   {
     "id": 9,
     "name": "Balaia 405",
-    "sourcePath": "calendar-9.ics"
+    "sourcePath": "calendar-9.json"
   },
   {
     "id": 10,
     "name": "Onda Verde",
-    "sourcePath": "calendar-10.ics"
+    "sourcePath": "calendar-10.json"
   },
   {
     "id": 11,
     "name": "Aljezur",
-    "sourcePath": "calendar-11.ics"
+    "sourcePath": "calendar-11.json"
   },
   {
     "id": 12,
     "name": "Pescadores",
-    "sourcePath": "calendar-12.ics"
+    "sourcePath": "calendar-12.json"
   },
   {
     "id": 13,
     "name": "Paraiso",
-    "sourcePath": "calendar-13.ics"
+    "sourcePath": "calendar-13.json"
   },
   {
     "id": 14,
     "name": "Eulalia",
-    "sourcePath": "calendar-14.ics"
+    "sourcePath": "calendar-14.json"
   }
 ]

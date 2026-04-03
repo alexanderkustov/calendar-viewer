@@ -132,44 +132,6 @@ function remainingCheckoutLabelForMonth(idx, year, month) {
   return `🚪: ${remainingDates.map((date) => fmtShort(date)).join(', ')}`;
 }
 
-// ─── iCal Parse ─────────────────────────────────────────────────────────────
-
-function parseICS(text) {
-  const events = [];
-  text = text.replace(/\r\n[ \t]/g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-  let ev = null;
-  for (const rawLine of text.split('\n')) {
-    const line = rawLine.trim();
-    if (line === 'BEGIN:VEVENT') { ev = {}; }
-    else if (line === 'END:VEVENT') {
-      if (ev && ev.start && ev.end) events.push(ev);
-      ev = null;
-    } else if (ev) {
-      const ci = line.indexOf(':');
-      if (ci < 0) continue;
-      const keyFull = line.slice(0, ci);
-      const key = keyFull.split(';')[0].toUpperCase();
-      const val = line.slice(ci + 1);
-      if (key === 'SUMMARY') ev.summary = val;
-      if (key === 'DTSTART') ev.start = parseICSDate(val, keyFull);
-      if (key === 'DTEND') ev.end = parseICSDate(val, keyFull);
-    }
-  }
-  return events;
-}
-
-function parseICSDate(val, keyFull) {
-  val = val.trim();
-  if (/VALUE=DATE/i.test(keyFull) || /^\d{8}$/.test(val)) {
-    const s = val.replace(/^VALUE=DATE:/i, '');
-    return new Date(+s.slice(0, 4), +s.slice(4, 6) - 1, +s.slice(6, 8));
-  }
-  const y = +val.slice(0, 4), mo = +val.slice(4, 6) - 1, d = +val.slice(6, 8);
-  const h = +(val.slice(9, 11) || 0), mi = +(val.slice(11, 13) || 0), sec = +(val.slice(13, 15) || 0);
-  if (val.endsWith('Z')) return new Date(Date.UTC(y, mo, d, h, mi, sec));
-  return new Date(y, mo, d, h, mi, sec);
-}
-
 // ─── Occupancy calc ──────────────────────────────────────────────────────────
 // Returns booked days within [from, to) for a given calendar
 
@@ -223,8 +185,8 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Returns whether the generated snapshot is old enough that live calendar data
- * should be preferred for the next load.
+ * Returns whether the generated snapshot is older than the expected refresh
+ * window.
  * @param {Date|null} generatedAt
  * @param {Date} [now=new Date()]
  * @returns {boolean}
@@ -238,55 +200,81 @@ function isSnapshotStale(generatedAt, now = new Date()) {
 }
 
 /**
- * Fetches calendar text from the provided URL.
+ * Fetches JSON from the provided URL.
  * @param {string} url
- * @returns {Promise<string>}
+ * @returns {Promise<any>}
  */
-async function fetchCalendarText(url) {
+async function fetchJson(url) {
   const response = await fetch(url, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
 
-  return response.text();
+  return response.json();
 }
 
 /**
- * Loads a source calendar from either the generated snapshot or the live proxy.
- * @param {number} sourceId
- * @param {{ preferLive?: boolean }} [options]
- * @returns {Promise<{ text: string, source: 'live' | 'static' }>}
+ * Converts a serialized snapshot date value into a browser Date instance.
+ * @param {{ type?: string, value?: string }} rawDate
+ * @returns {Date|null}
  */
-async function loadSourceCalendar(sourceId, { preferLive = false } = {}) {
-  const cb = Date.now();
-  const staticUrl = assetUrl(`${STATIC_DATA_DIR}/calendar-${sourceId}.ics?_cb=${cb}`);
-  const liveUrl = `/api/ical?id=${sourceId}&_cb=${cb}`;
-  const sources = preferLive
-    ? [{ source: 'live', url: liveUrl }, { source: 'static', url: staticUrl }]
-    : [{ source: 'static', url: staticUrl }, { source: 'live', url: liveUrl }];
-  let lastError = null;
-
-  for (const candidate of sources) {
-    try {
-      const text = await fetchCalendarText(candidate.url);
-      return {
-        text,
-        source: candidate.source,
-      };
-    } catch (error) {
-      lastError = error;
-    }
+function parseSnapshotDate(rawDate) {
+  if (!rawDate || typeof rawDate.value !== 'string') {
+    return null;
   }
 
-  throw lastError || new Error('Unable to load calendar');
+  if (rawDate.type === 'date') {
+    const [year, month, day] = rawDate.value.split('-').map(Number);
+    if (!year || !month || !day) {
+      return null;
+    }
+    return new Date(year, month - 1, day);
+  }
+
+  const parsed = new Date(rawDate.value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
 }
 
-async function loadAll({ preferLive = false } = {}) {
+function hydrateSnapshotEvents(snapshotEvents) {
+  if (!Array.isArray(snapshotEvents)) {
+    throw new Error('Not a valid calendar snapshot');
+  }
+
+  return snapshotEvents
+    .map((event) => {
+      const start = parseSnapshotDate(event?.start);
+      const end = parseSnapshotDate(event?.end);
+      if (!(start instanceof Date) || Number.isNaN(start.getTime())) return null;
+      if (!(end instanceof Date) || Number.isNaN(end.getTime())) return null;
+      return {
+        summary: typeof event?.summary === 'string' ? event.summary : '',
+        start,
+        end
+      };
+    })
+    .filter(Boolean);
+}
+
+/**
+ * Loads a source calendar from the generated JSON snapshot.
+ * @param {number} sourceId
+ * @returns {Promise<Array<{summary: string, start: Date, end: Date}>>}
+ */
+async function loadSourceCalendar(sourceId) {
+  const cb = Date.now();
+  const snapshot = await fetchJson(assetUrl(`${STATIC_DATA_DIR}/calendar-${sourceId}.json?_cb=${cb}`));
+  return hydrateSnapshotEvents(snapshot);
+}
+
+async function loadAll() {
   setStatus('loading');
   const syncManifest = await fetchSyncManifest();
   const lastSyncAt = syncManifest?.generatedAt || null;
   const snapshotIsStale = isSnapshotStale(lastSyncAt);
-  const shouldPreferLive = preferLive || snapshotIsStale;
   const activeCalendars = calendarsForLocation(activeLocation);
   calData = new Array(CALENDARS_META.length).fill(null);
   calStatus = new Array(CALENDARS_META.length).fill('idle');
@@ -296,16 +284,12 @@ async function loadAll({ preferLive = false } = {}) {
   document.getElementById('errorBanner').style.display = 'none';
   renderControls();
   const errors = [];
-  let usedLiveSource = false;
 
   await Promise.all(activeCalendars.map(async ({ meta, idx }) => {
     try {
       const allEvents = [];
       for (const sourceId of meta.sources) {
-        const result = await loadSourceCalendar(sourceId, { preferLive: shouldPreferLive });
-        if (!result.text.includes('BEGIN:VCALENDAR')) throw new Error('Not a valid iCal response');
-        if (result.source === 'live') usedLiveSource = true;
-        allEvents.push(...parseICS(result.text));
+        allEvents.push(...await loadSourceCalendar(sourceId));
       }
       calData[idx] = allEvents;
       setCalStatus(idx, 'loaded');
@@ -319,7 +303,7 @@ async function loadAll({ preferLive = false } = {}) {
   if (errors.length) {
     const banner = document.getElementById('errorBanner');
     banner.style.display = 'block';
-    banner.textContent = 'Some calendars failed to load. Refresh the generated data files, or use the local Node server fallback. ' + errors.join(' | ');
+    banner.textContent = 'Some calendars failed to load. Refresh again after the static snapshot job completes. ' + errors.join(' | ');
   } else {
     document.getElementById('errorBanner').style.display = 'none';
   }
@@ -328,7 +312,6 @@ async function loadAll({ preferLive = false } = {}) {
   updateLastUpdatedLabel({
     snapshotGeneratedAt: lastSyncAt,
     snapshotIsStale,
-    liveRefreshedAt: usedLiveSource ? new Date() : null,
     staleCalendars: syncManifest?.staleCalendars || []
   });
   renderCalendar();
@@ -366,7 +349,6 @@ async function fetchSyncManifest() {
 function updateLastUpdatedLabel({
   snapshotGeneratedAt = null,
   snapshotIsStale = false,
-  liveRefreshedAt = null,
   staleCalendars = []
 } = {}) {
   const label = document.getElementById('lastUpdated');
@@ -376,13 +358,7 @@ function updateLastUpdatedLabel({
   const preservedSuffix = staleCount ? ` • ${staleCount} preserved` : '';
   const titleParts = [];
 
-  if (liveRefreshedAt instanceof Date && !Number.isNaN(liveRefreshedAt.getTime())) {
-    label.textContent = `Live refreshed: ${formatTimestamp(liveRefreshedAt)}${preservedSuffix}`;
-    titleParts.push(`Live refreshed: ${formatTimestamp(liveRefreshedAt)}`);
-    if (snapshotGeneratedAt instanceof Date && !Number.isNaN(snapshotGeneratedAt.getTime())) {
-      titleParts.push(`Snapshot updated: ${formatTimestamp(snapshotGeneratedAt)}`);
-    }
-  } else if (snapshotGeneratedAt instanceof Date && !Number.isNaN(snapshotGeneratedAt.getTime())) {
+  if (snapshotGeneratedAt instanceof Date && !Number.isNaN(snapshotGeneratedAt.getTime())) {
     label.textContent = `Snapshot updated: ${formatTimestamp(snapshotGeneratedAt)}${snapshotIsStale ? ' (stale)' : ''}${preservedSuffix}`;
     titleParts.push(`Snapshot updated: ${formatTimestamp(snapshotGeneratedAt)}`);
   } else {
@@ -390,7 +366,7 @@ function updateLastUpdatedLabel({
   }
 
   if (snapshotIsStale) {
-    titleParts.push('Static snapshot is older than the live-refresh threshold.');
+    titleParts.push('Static snapshot is older than the expected hourly refresh window.');
   }
 
   if (staleCount) {
@@ -410,7 +386,7 @@ function updateLastUpdatedLabel({
 
 /**
  * Starts an hourly background refresh so an open tab can pick up newer
- * bookings without waiting for a full page reload.
+ * generated snapshots without a full page reload.
  * @returns {void}
  */
 function startAutoRefresh() {
@@ -419,7 +395,7 @@ function startAutoRefresh() {
   }
 
   autoRefreshTimerId = window.setInterval(() => {
-    loadAll({ preferLive: true }).catch((error) => {
+    loadAll().catch((error) => {
       console.error('Auto-refresh failed:', error);
     });
   }, AUTO_REFRESH_INTERVAL_MS);

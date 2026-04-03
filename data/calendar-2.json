@@ -1,0 +1,332 @@
+[
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-04-02"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-04-05"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-04-05"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-04-09"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-04-09"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-04-12"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-04-14"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-04-16"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-04-17"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-04-20"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-04-21"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-04-24"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-04-25"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-04-27"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-04-30"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-05-05"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-05-06"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-05-09"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-05-11"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-05-15"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-05-16"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-05-22"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-05-23"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-05-30"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-06-01"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-06-06"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-06-06"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-06-08"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-06-11"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-06-14"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-06-14"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-06-17"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-06-17"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-06-24"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-06-25"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-06-29"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-06-29"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-07-05"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-07-07"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-07-14"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-07-16"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-07-20"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-07-20"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-07-25"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-07-27"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-07-29"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-07-29"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-08-02"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-01"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-05"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-07"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-14"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-17"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-22"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-26"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-10-03"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-10-05"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-10-14"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-12-23"
+    },
+    "end": {
+      "type": "date",
+      "value": "2027-01-08"
+    },
+    "summary": "Reserved"
+  }
+]

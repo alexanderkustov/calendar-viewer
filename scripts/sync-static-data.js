@@ -1,14 +1,15 @@
 const fs = require("fs/promises");
 const path = require("path");
 
-const { CALENDARS, fetchUrl } = require("../server.js");
+const { CALENDARS } = require("../calendar-sources.js");
+const { buildCalendarSnapshot, fetchUrl } = require("../calendar-snapshot.js");
 
 const DATA_DIR = path.join(__dirname, "..", "data");
 const FETCH_TIMEOUT_MS = 30_000;
 const FETCH_RETRIES = 2;
 const FETCH_RETRY_DELAY_MS = 1_500;
 const MANAGED_DATA_FILES = new Set(["calendars.json", "manifest.json"]);
-const CALENDAR_FILE_PATTERN = /^calendar-\d+\.ics$/;
+const CALENDAR_FILE_PATTERN = /^calendar-\d+\.(ics|json)$/;
 
 async function pathExists(targetPath) {
   try {
@@ -21,16 +22,6 @@ async function pathExists(targetPath) {
 
 function isManagedDataEntry(entryName) {
   return MANAGED_DATA_FILES.has(entryName) || CALENDAR_FILE_PATTERN.test(entryName);
-}
-
-function validateCalendarSnapshot(icsData) {
-  if (typeof icsData !== "string") {
-    throw new Error("Calendar response was not text");
-  }
-
-  if (!icsData.includes("BEGIN:VCALENDAR") || !icsData.includes("END:VCALENDAR")) {
-    throw new Error("Not a valid iCal response");
-  }
 }
 
 function formatErrorMessage(error) {
@@ -75,7 +66,7 @@ async function fetchWithRetry(
     retries = FETCH_RETRIES,
     retryDelayMs = FETCH_RETRY_DELAY_MS,
     fetchCalendar = fetchUrl,
-    label = "calendar"
+    label = "calendar",
   } = {}
 ) {
   let lastError = null;
@@ -112,11 +103,10 @@ async function copyPreservedDataEntries(sourceDir, targetDir) {
       continue;
     }
 
-    await fs.cp(
-      path.join(sourceDir, entry.name),
-      path.join(targetDir, entry.name),
-      { force: true, recursive: true }
-    );
+    await fs.cp(path.join(sourceDir, entry.name), path.join(targetDir, entry.name), {
+      force: true,
+      recursive: true,
+    });
   }
 }
 
@@ -124,7 +114,7 @@ function buildCalendarsIndex(calendars) {
   return calendars.map((calendar, id) => ({
     id,
     name: calendar.name,
-    sourcePath: `calendar-${id}.ics`,
+    sourcePath: `calendar-${id}.json`,
   }));
 }
 
@@ -137,16 +127,28 @@ function buildManifest(calendars, staleCalendars = [], now = new Date()) {
   };
 }
 
-async function restoreExistingCalendarSnapshot({ id, targetDir, existingDataDir }) {
-  const filename = `calendar-${id}.ics`;
-  const existingPath = path.join(existingDataDir, filename);
-  const replacementPath = path.join(targetDir, filename);
+async function writeCalendarSnapshotFile(targetPath, snapshotEvents) {
+  await fs.writeFile(targetPath, `${JSON.stringify(snapshotEvents, null, 2)}\n`, "utf8");
+}
 
-  if (!(await pathExists(existingPath))) {
+async function restoreExistingCalendarSnapshot({ id, targetDir, existingDataDir }) {
+  const jsonFilename = `calendar-${id}.json`;
+  const replacementPath = path.join(targetDir, jsonFilename);
+  const existingJsonPath = path.join(existingDataDir, jsonFilename);
+
+  if (await pathExists(existingJsonPath)) {
+    await fs.copyFile(existingJsonPath, replacementPath);
+    return;
+  }
+
+  const legacyIcsPath = path.join(existingDataDir, `calendar-${id}.ics`);
+  if (!(await pathExists(legacyIcsPath))) {
     throw new Error("No previous snapshot available for fallback");
   }
 
-  await fs.copyFile(existingPath, replacementPath);
+  const legacyIcsData = await fs.readFile(legacyIcsPath, "utf8");
+  const legacySnapshot = buildCalendarSnapshot(legacyIcsData);
+  await writeCalendarSnapshotFile(replacementPath, legacySnapshot);
 }
 
 async function writeSnapshotSet(
@@ -165,10 +167,10 @@ async function writeSnapshotSet(
         retries: FETCH_RETRIES,
         retryDelayMs: FETCH_RETRY_DELAY_MS,
         fetchCalendar,
-        label: `[${id}] ${calendar.name}`
+        label: `[${id}] ${calendar.name}`,
       });
-      validateCalendarSnapshot(icsData);
-      await fs.writeFile(path.join(targetDir, `calendar-${id}.ics`), icsData, "utf8");
+      const snapshot = buildCalendarSnapshot(icsData);
+      await writeCalendarSnapshotFile(path.join(targetDir, `calendar-${id}.json`), snapshot);
     } catch (error) {
       const reason = formatErrorMessage(error);
       console.warn(
@@ -262,11 +264,14 @@ module.exports = {
   buildManifest,
   copyPreservedDataEntries,
   fetchWithRetry,
+  fetchWithTimeout,
   formatErrorMessage,
   isManagedDataEntry,
-  restoreExistingCalendarSnapshot,
+  pathExists,
   replaceDataDirectory,
+  restoreExistingCalendarSnapshot,
+  sleep,
   syncStaticData,
-  validateCalendarSnapshot,
+  writeCalendarSnapshotFile,
   writeSnapshotSet,
 };

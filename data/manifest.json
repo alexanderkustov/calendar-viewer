@@ -1,5 +1,9 @@
 {
+<<<<<<< HEAD
   "generatedAt": "2026-04-03T15:52:58.024Z",
+=======
+  "generatedAt": "2026-04-03T15:54:56.458Z",
+>>>>>>> 5f1d6a4 (switch to json)
   "calendarCount": 15,
   "staleCalendarCount": 0,
   "staleCalendars": []

@@ -1,0 +1,35 @@
+[
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-08-05"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-08-19"
+    },
+    "summary": "CLOSED - Not available"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-08-19"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-08-24"
+    },
+    "summary": "CLOSED - Not available"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-08-27"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-08-31"
+    },
+    "summary": "CLOSED - Not available"
+  }
+]

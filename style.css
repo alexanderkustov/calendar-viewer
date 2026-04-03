@@ -804,7 +804,8 @@ h1 {
 
 .occupancy-row {
   display: grid;
-  grid-template-columns: 80px repeat(var(--cal-count, 3), 1fr);
+  min-width: max-content;
+  grid-template-columns: 80px repeat(var(--cal-count, 3), minmax(130px, 1fr));
   background: var(--surface2);
 }
 
@@ -880,5 +881,29 @@ h1 {
 
   .cal-header-meta {
     font-size: 0.54rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar,
+  .main {
+    padding: 0.8rem;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+  }
+
+  .month-title {
+    font-size: 1.4rem;
+  }
+
+  .location-tabs,
+  .toggle-group {
+    gap: 0.35rem;
+  }
+
+  .cal-toggle {
+    padding: 0.25rem 0.6rem 0.25rem 0.4rem;
   }
 }
