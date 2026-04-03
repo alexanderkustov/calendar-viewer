@@ -18,6 +18,9 @@
   --shadow: 0 2px 16px rgba(50, 30, 55, 0.06);
   --shadow-lg: 0 8px 40px rgba(50, 30, 55, 0.10);
   --row-label-w: 110px;
+  --grid-date-col: 80px;
+  --calendar-col-min: 140px;
+  --touch-target: 42px;
 }
 
 * {
@@ -34,6 +37,7 @@ body {
   min-height: 100vh;
   font-size: 1.15em;
   letter-spacing: 0.03em;
+  overflow-x: hidden;
 }
 
 /* ── Topbar ─────────────────────────────────────────────────────────────── */
@@ -95,6 +99,8 @@ h1 {
   flex-wrap: nowrap;
   flex: 1 1 auto;
   min-width: 0;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .location-tabs {
@@ -102,12 +108,15 @@ h1 {
   align-items: center;
   gap: 0.75rem;
   flex: 0 0 auto;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
 }
 
 .location-tab {
   background: var(--surface2);
   border: 1.5px solid var(--border);
   border-radius: 999px;
+  min-height: var(--touch-target);
   padding: 0.55rem 1.3rem;
   color: var(--muted);
   cursor: pointer;
@@ -197,32 +206,12 @@ h1 {
   }
 }
 
-.refresh-btn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
-  border-radius: 6px;
-  padding: 0.28rem 0.65rem;
-  margin-left: auto;
-  cursor: pointer;
-  font-family: 'Jost', sans-serif;
-  font-size: 0.64rem;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-  transition: all 0.2s;
-}
-
 .last-updated {
   font-family: 'Jost', sans-serif;
   font-size: 0.64rem;
   letter-spacing: 0.05em;
   color: var(--muted);
   white-space: nowrap;
-}
-
-.refresh-btn:hover {
-  border-color: var(--text);
-  color: var(--text);
 }
 
 /* ── Main ───────────────────────────────────────────────────────────────── */
@@ -260,7 +249,11 @@ h1 {
   border: 1px solid var(--border-strong);
   color: var(--muted);
   border-radius: 999px;
+  min-height: var(--touch-target);
   padding: 0.45rem 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-family: 'Jost', sans-serif;
   font-size: 0.72rem;
   letter-spacing: 0.08em;
@@ -329,7 +322,7 @@ h1 {
   align-items: baseline;
   gap: 0.6rem;
   margin-bottom: 0.75rem;
-  padding-left: var(--row-label-w);
+  padding-left: var(--grid-date-col);
 }
 
 .month-name {
@@ -357,7 +350,10 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: none;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 /* ── Shared grid row ────────────────────────────────────────────────────── */
@@ -366,8 +362,8 @@ h1 {
 .week-date-row,
 .booking-row {
   display: grid;
-  /* Date column + 1 column per calendar */
-  grid-template-columns: 80px repeat(var(--cal-count, 3), 1fr);
+  grid-template-columns: var(--grid-date-col) repeat(var(--cal-count, 3), minmax(var(--calendar-col-min), 1fr));
+  min-width: max-content;
 }
 
 /* ── Day-of-week header ─────────────────────────────────────────────────── */
@@ -395,6 +391,7 @@ h1 {
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   color: var(--muted);
+  min-height: 64px;
   padding: 0.85rem 0.75rem;
   font-weight: 700;
   border-left: 1px solid var(--border);
@@ -408,6 +405,11 @@ h1 {
   justify-content: center;
   padding-inline: 0.2rem;
   border-left: 0;
+  position: sticky;
+  left: 0;
+  z-index: 7;
+  background: var(--surface2);
+  box-shadow: 1px 0 0 var(--border);
 }
 
 .cal-header-cell.is-calendar {
@@ -424,6 +426,7 @@ h1 {
 
 .cal-header-name {
   color: var(--text);
+  overflow-wrap: anywhere;
 }
 
 .cal-header-meta {
@@ -455,11 +458,16 @@ h1 {
   color: var(--text);
   padding: 0.7rem 0 0.3rem;
   line-height: 1.1;
+  position: sticky;
+  left: 0;
+  z-index: 6;
+  background: var(--surface);
+  box-shadow: 1px 0 0 var(--border);
 }
 
 .date-cell.is-today {
   color: var(--today-accent);
-  position: relative;
+  position: sticky;
 }
 
 .date-cell.is-today::after {
@@ -498,6 +506,10 @@ h1 {
 
 .booking-row:hover {
   background: rgba(0, 0, 0, 0.01);
+}
+
+.booking-row:hover .date-cell {
+  background: var(--surface);
 }
 
 /* ── Booking cell ───────────────────────────────────────────────────────── */
@@ -551,24 +563,33 @@ h1 {
 /* ── Booking segment block ──────────────────────────────────────────────── */
 
 .booking-seg {
+  --seg-fill: var(--bar-color);
   position: absolute;
   left: 4px;
   right: 4px;
-  background: var(--bar-color);
-  opacity: 0.82;
+  background: var(--seg-fill);
+  opacity: 0.9;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   padding: 0 8px;
   overflow: hidden;
   cursor: pointer;
-  transition: opacity 0.15s, filter 0.15s;
+  transition: opacity 0.15s, filter 0.15s, transform 0.15s;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.26);
   z-index: 2;
 }
 
 .booking-seg:hover {
   opacity: 1;
-  filter: brightness(1.07);
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.seg-start,
+.seg-end,
+.seg-only {
+  --seg-fill: color-mix(in srgb, var(--bar-color) 88%, white);
 }
 
 /* Shape variants - now block-based instead of horizontal position-based */
@@ -585,17 +606,23 @@ h1 {
 }
 
 .seg-checkout-marker {
-  opacity: 0.5;
+  opacity: 0.76;
   z-index: 1;
 }
 
 .seg-mid {
+  --seg-fill: color-mix(in srgb, var(--bar-color) 42%, white);
   top: 0;
   bottom: 0;
   height: 100%;
+  opacity: 0.8;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 
 .seg-only {
+  --seg-fill: color-mix(in srgb, var(--bar-color) 92%, white);
   border-radius: 6px;
   top: 25%;
   height: 50%;
@@ -667,7 +694,7 @@ h1 {
   pointer-events: none;
   z-index: 1000;
   display: none;
-  max-width: 210px;
+  max-width: min(210px, calc(100vw - 1rem));
   line-height: 1.8;
   box-shadow: none;
 }
@@ -712,6 +739,7 @@ h1 {
   background: var(--surface2);
   border: 1.5px solid var(--border);
   border-radius: 20px;
+  min-height: var(--touch-target);
   padding: 0.3rem 0.85rem 0.3rem 0.6rem;
   font-size: 0.64rem;
   font-weight: 400;
@@ -805,7 +833,7 @@ h1 {
 .occupancy-row {
   display: grid;
   min-width: max-content;
-  grid-template-columns: 80px repeat(var(--cal-count, 3), minmax(130px, 1fr));
+  grid-template-columns: var(--grid-date-col) repeat(var(--cal-count, 3), minmax(var(--calendar-col-min), 1fr));
   background: var(--surface2);
 }
 
@@ -825,6 +853,11 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-weight: 600;
+  position: sticky;
+  left: 0;
+  z-index: 6;
+  background: var(--surface2);
+  box-shadow: 1px 0 0 var(--border);
 }
 
 .occupancy-cell {
@@ -838,31 +871,45 @@ h1 {
   letter-spacing: 0.01em;
 }
 
+.location-tab:focus-visible,
+.load-more-btn:focus-visible,
+.cal-toggle:focus-visible,
+.booking-seg:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
 @media (max-width: 900px) {
+  :root {
+    --grid-date-col: 72px;
+    --calendar-col-min: 128px;
+  }
+
   .topbar,
   .main {
     padding: 1.35rem;
   }
 
   .status-bar {
-    justify-content: center;
+    justify-content: flex-start;
+    align-items: stretch;
     flex-wrap: wrap;
+    gap: 0.75rem;
   }
 
   .location-tabs,
   .toggle-group {
-    justify-content: center;
-    flex-wrap: wrap;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
     flex-basis: 100%;
-  }
-
-  .refresh-btn {
-    margin-left: 0;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
   }
 
   .last-updated {
     flex-basis: 100%;
-    text-align: center;
+    order: 3;
+    text-align: left;
     white-space: normal;
   }
 
@@ -875,6 +922,11 @@ h1 {
     font-size: 1.7rem;
   }
 
+  .cal-header-cell {
+    min-height: 58px;
+    padding: 0.8rem 0.55rem;
+  }
+
   .cal-header-cell.is-calendar {
     padding-inline: 0.55rem;
   }
@@ -885,6 +937,12 @@ h1 {
 }
 
 @media (max-width: 600px) {
+  :root {
+    --grid-date-col: 64px;
+    --calendar-col-min: 112px;
+    --touch-target: 40px;
+  }
+
   .topbar,
   .main {
     padding: 0.8rem;
@@ -900,10 +958,72 @@ h1 {
 
   .location-tabs,
   .toggle-group {
-    gap: 0.35rem;
+    gap: 0.5rem;
+  }
+
+  .status-bar {
+    gap: 0.6rem;
+  }
+
+  .location-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.68rem;
   }
 
   .cal-toggle {
-    padding: 0.25rem 0.6rem 0.25rem 0.4rem;
+    padding: 0.34rem 0.75rem 0.34rem 0.55rem;
+  }
+
+  .cal-toggle .toggle-name {
+    font-size: 0.62rem;
+  }
+
+  .load-more-btn {
+    width: 100%;
+  }
+
+  .month-section {
+    margin-bottom: 1.8rem;
+  }
+
+  .cal-header-cell {
+    min-height: 54px;
+    font-size: 0.72rem;
+    padding: 0.7rem 0.45rem;
+  }
+
+  .cal-header-meta {
+    font-size: 0.5rem;
+  }
+
+  .date-cell {
+    font-size: 1.15rem;
+    padding-top: 0.6rem;
+  }
+
+  .date-cell .dow-label {
+    font-size: 0.62rem;
+  }
+
+  .booking-row {
+    min-height: 44px;
+  }
+
+  .booking-cell {
+    padding: 0.16rem;
+  }
+
+  .seg-text {
+    font-size: 0.46rem;
+    padding: 0 4px;
+  }
+
+  .last-updated {
+    font-size: 0.6rem;
+  }
+
+  .tooltip {
+    padding: 0.7rem 0.85rem;
+    font-size: 0.64rem;
   }
 }

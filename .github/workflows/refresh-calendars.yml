@@ -2,11 +2,13 @@ name: Refresh Calendars
 
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "17 */3 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: refresh-calendars
@@ -15,7 +17,10 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Check out repository
@@ -41,3 +46,28 @@ jobs:
           git add data
           git commit -m "Update calendar snapshots"
           git push
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Stage static site
+        run: |
+          mkdir -p _site
+          cp index.html _site/
+          cp style.css _site/
+          cp main.js _site/
+          cp robots.txt _site/
+          cp .nojekyll _site/
+          cp -R data _site/
+          cp -R albufeira _site/
+          cp -R portimao _site/
+          cp -R mama _site/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

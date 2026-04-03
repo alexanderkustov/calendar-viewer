@@ -4,7 +4,7 @@ A lightweight vanilla JavaScript calendar timeline viewer published as a static 
 
 ## How it works
 
-- GitHub Actions runs `npm run sync:calendars` every hour.
+- GitHub Actions runs `npm run sync:calendars` every 3 hours and deploys GitHub Pages in the same workflow.
 - `scripts/sync-static-data.js` fetches each remote iCal feed, converts it to `data/calendar-<id>.json`, and updates `data/calendars.json` plus `data/manifest.json`.
 - The browser only reads those generated JSON files.
 - `server.js` is only a tiny local preview server for `npm start`.
@@ -15,7 +15,7 @@ A lightweight vanilla JavaScript calendar timeline viewer published as a static 
 - `calendar-snapshot.js` — Node helpers for fetching feeds and converting iCal to JSON snapshots.
 - `main.js` — browser-side loading, rendering, and occupancy calculations.
 - `server.js` — local static preview server.
-- `scripts/sync-static-data.js` — hourly/manual snapshot generator.
+- `scripts/sync-static-data.js` — scheduled/manual snapshot generator.
 
 ## Run locally
 
@@ -47,9 +47,11 @@ Then open:
 
 ## Deploy
 
-GitHub Pages is deployed from the checked-in static files. The refresh workflow updates `data/`, and the Pages workflow publishes the site.
+GitHub Pages is deployed from the checked-in static files. The refresh workflow syncs `data/`, commits any changed snapshots, and deploys the site in the same run. The separate Pages workflow can still be triggered manually for a redeploy without syncing.
 
 ## Notes
 
 - The generated `data/` files are public on GitHub Pages.
 - There is no production API or live proxy anymore.
+- On smaller screens, the month grid scrolls horizontally and booking blocks can be tapped to show stay details.
+- The interface labels and dates are shown in Portuguese (`pt-PT`).

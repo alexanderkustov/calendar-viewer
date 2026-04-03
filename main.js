@@ -1,4 +1,5 @@
 const COLORS = ['#3E92CF', '#60C6C9', '#1A558A', '#9B51E0', '#27AE60', '#F2994A', '#E76F51', '#2A9D8F', '#264653', '#E9C46A'];
+const LOCALE = 'pt-PT';
 const MAX_DAYS_AHEAD = 180;
 const INITIAL_VISIBLE_MONTHS = 2;
 const LOAD_MORE_MONTHS = 1;
@@ -10,7 +11,7 @@ const APP_ROOT_URL = new URL(APP_ROOT.endsWith('/') ? APP_ROOT : `${APP_ROOT}/`,
 const PAGE_LOCATION_ID = window.__CALENDAR_VIEWER_LOCATION__ || null;
 const LOCATION_ROUTES = [
   { id: 'albufeira', label: 'Albufeira', slug: '', showInTabs: true },
-  { id: 'portimao', label: 'Portimao', slug: 'portimao', showInTabs: true },
+  { id: 'portimao', label: 'Portimão', slug: 'portimao', showInTabs: true },
   { id: 'mama', label: 'Mama', slug: 'mama', showInTabs: false }
 ];
 const LOCATION_TABS = LOCATION_ROUTES.filter((location) => location.showInTabs);
@@ -44,10 +45,10 @@ let autoRefreshTimerId = null;
 function startOfDay(d) { const r = new Date(d); r.setHours(0, 0, 0, 0); return r; }
 function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
 function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
-function fmtFull(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); }
-function fmtShort(d) { return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
+function fmtFull(d) { return d.toLocaleDateString(LOCALE, { day: 'numeric', month: 'short', year: 'numeric' }); }
+function fmtShort(d) { return d.toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' }); }
 function formatTimestamp(d) {
-  return d.toLocaleString('en-GB', {
+  return d.toLocaleString(LOCALE, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -58,12 +59,15 @@ function formatTimestamp(d) {
 }
 function clamp(v, lo, hi) { return Math.min(Math.max(v, lo), hi); }
 function bookingNights(ev) { return Math.max(1, Math.round((startOfDay(ev.end) - startOfDay(ev.start)) / 86400000)); }
-function nightsLabel(nights) { return `${nights} night${nights !== 1 ? 's' : ''}`; }
+function nightsLabel(nights) { return `${nights} noite${nights !== 1 ? 's' : ''}`; }
 function bookingTitle(ev) {
   const summary = (ev.summary || '').trim();
   if (!summary) return nightsLabel(bookingNights(ev));
-  if (/\breserv(?:ed|ation)\b/i.test(summary)) return nightsLabel(bookingNights(ev));
+  if (/\b(reserv(?:ed|ation)?|reserva(?:da)?|booking)\b/i.test(summary)) return nightsLabel(bookingNights(ev));
   return summary;
+}
+function formatMonthTitle(year, month) {
+  return `${MONTH_TITLES_SHORT[month]}${String(year).slice(-2)}`;
 }
 function remainingCheckoutDatesForMonth(ci, year, month, from = startOfDay(new Date())) {
   const monthStart = new Date(year, month, 1);
@@ -92,8 +96,8 @@ function colorForCalendar(index) {
   return COLORS[index % COLORS.length];
 }
 
-const WEEKDAYS_SHORT = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
-const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const WEEKDAYS_SHORT = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+const MONTH_TITLES_SHORT = ['Jan.', 'Fev.', 'Mar.', 'Abr.', 'Mai.', 'Jun.', 'Jul.', 'Ago.', 'Set.', 'Out.', 'Nov.', 'Dez.'];
 
 function calendarsForLocation(locationId = activeLocation) {
   return CALENDARS_META
@@ -124,11 +128,11 @@ function activeLocationShowsTabs() {
 }
 
 function remainingCheckoutLabelForMonth(idx, year, month) {
-  if (calStatus[idx] === 'loading') return '🚪: loading...';
-  if (calStatus[idx] === 'error') return '🚪 unavailable';
+  if (calStatus[idx] === 'loading') return '🚪: a carregar...';
+  if (calStatus[idx] === 'error') return '🚪 indisponível';
 
   const remainingDates = remainingCheckoutDatesForMonth(idx, year, month);
-  if (!remainingDates.length) return 'No 🚪 this month';
+  if (!remainingDates.length) return 'Sem 🚪 este mês';
   return `🚪: ${remainingDates.map((date) => fmtShort(date)).join(', ')}`;
 }
 
@@ -182,6 +186,21 @@ window.addEventListener('DOMContentLoaded', () => {
   renderControls();
   loadAll();
   startAutoRefresh();
+
+  document.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) {
+      hideTip(true);
+      return;
+    }
+
+    if (event.target.closest('.booking-seg')) {
+      return;
+    }
+
+    hideTip(true);
+  });
+  window.addEventListener('resize', () => hideTip(true));
+  window.addEventListener('scroll', () => hideTip(true), true);
 });
 
 /**
@@ -271,6 +290,7 @@ async function loadSourceCalendar(sourceId) {
 }
 
 async function loadAll() {
+  hideTip(true);
   setStatus('loading');
   const syncManifest = await fetchSyncManifest();
   const lastSyncAt = syncManifest?.generatedAt || null;
@@ -303,7 +323,7 @@ async function loadAll() {
   if (errors.length) {
     const banner = document.getElementById('errorBanner');
     banner.style.display = 'block';
-    banner.textContent = 'Some calendars failed to load. Refresh again after the static snapshot job completes. ' + errors.join(' | ');
+    banner.textContent = 'Alguns calendários não foram carregados. Tente novamente depois de a atualização estática terminar. ' + errors.join(' | ');
   } else {
     document.getElementById('errorBanner').style.display = 'none';
   }
@@ -355,31 +375,31 @@ function updateLastUpdatedLabel({
   if (!label) return;
 
   const staleCount = Array.isArray(staleCalendars) ? staleCalendars.length : 0;
-  const preservedSuffix = staleCount ? ` • ${staleCount} preserved` : '';
+  const preservedSuffix = staleCount ? ` • ${staleCount} preservados` : '';
   const titleParts = [];
 
   if (snapshotGeneratedAt instanceof Date && !Number.isNaN(snapshotGeneratedAt.getTime())) {
-    label.textContent = `Snapshot updated: ${formatTimestamp(snapshotGeneratedAt)}${snapshotIsStale ? ' (stale)' : ''}${preservedSuffix}`;
-    titleParts.push(`Snapshot updated: ${formatTimestamp(snapshotGeneratedAt)}`);
+    label.textContent = `Última atualização: ${formatTimestamp(snapshotGeneratedAt)}${snapshotIsStale ? ' (desatualizado)' : ''}${preservedSuffix}`;
+    titleParts.push(`Última atualização do snapshot: ${formatTimestamp(snapshotGeneratedAt)}`);
   } else {
-    label.textContent = staleCount ? `Last updated: unknown${preservedSuffix}` : 'Last updated: unknown';
+    label.textContent = staleCount ? `Última atualização: desconhecida${preservedSuffix}` : 'Última atualização: desconhecida';
   }
 
   if (snapshotIsStale) {
-    titleParts.push('Static snapshot is older than the expected hourly refresh window.');
+    titleParts.push('O snapshot estático é mais antigo do que a janela horária esperada para atualização.');
   }
 
   if (staleCount) {
     const staleNames = staleCalendars
-      .map((calendar) => calendar?.name || `Source ${calendar?.id ?? '?'}`)
+      .map((calendar) => calendar?.name || `Fonte ${calendar?.id ?? '?'}`)
       .join(', ');
-    titleParts.push(`Preserved snapshot sources: ${staleNames}`);
+    titleParts.push(`Fontes preservadas no snapshot: ${staleNames}`);
   }
 
   label.title = titleParts.join(' ');
 
   if (!label.textContent) {
-    label.textContent = 'Last updated: unknown';
+    label.textContent = 'Última atualização: desconhecida';
     return;
   }
 }
@@ -396,7 +416,7 @@ function startAutoRefresh() {
 
   autoRefreshTimerId = window.setInterval(() => {
     loadAll().catch((error) => {
-      console.error('Auto-refresh failed:', error);
+      console.error('A atualização automática falhou:', error);
     });
   }, AUTO_REFRESH_INTERVAL_MS);
 }
@@ -465,12 +485,13 @@ function renderCalendar() {
   const hardLimit = addDays(today, MAX_DAYS_AHEAD);
   const activeCalendars = visibleCalendarsForLocation();
 
+  hideTip(true);
   container.innerHTML = '';
 
   if (!activeCalendars.length) {
     const emptyState = document.createElement('div');
     emptyState.className = 'empty-state';
-    emptyState.textContent = `No calendars selected for ${activeLocationLabel()}.`;
+    emptyState.textContent = `Nenhum calendário selecionado para ${activeLocationLabel()}.`;
     container.appendChild(emptyState);
     syncLoadMoreButton(rangeEnd, hardLimit);
     return;
@@ -513,9 +534,7 @@ function addCheckoutMarker(cell, ev, ci) {
   marker.className = 'booking-seg seg-end seg-checkout-marker';
   marker.style.setProperty('--bar-color', colorForCalendar(ci));
   if (ev) {
-    marker.addEventListener('mouseenter', e => showTip(e, ev, ci));
-    marker.addEventListener('mousemove', moveTip);
-    marker.addEventListener('mouseleave', hideTip);
+    attachTooltipHandlers(marker, ev, ci);
   }
   cell.appendChild(marker);
 }
@@ -526,7 +545,7 @@ function buildOccupancyRow(year, month, activeCalendars) {
 
   const labelCell = document.createElement('div');
   labelCell.className = 'occupancy-label-cell';
-  labelCell.textContent = 'OCC';
+  labelCell.textContent = 'OCUP.';
   row.appendChild(labelCell);
 
   activeCalendars.forEach(({ idx: ci }) => {
@@ -553,7 +572,7 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
 
   const titleEl = document.createElement('div');
   titleEl.className = 'month-title';
-  titleEl.textContent = `${MONTH_NAMES[month]} ${year}`;
+  titleEl.textContent = formatMonthTitle(year, month);
   heading.appendChild(titleEl);
   section.appendChild(heading);
 
@@ -569,7 +588,7 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
   // Calendar Header Row (Top of columns)
   const headerRow = document.createElement('div');
   headerRow.className = 'dow-header';
-  headerRow.innerHTML = `<div class="cal-header-cell is-date">DATE</div>`;
+  headerRow.innerHTML = `<div class="cal-header-cell is-date">DATA</div>`;
   activeCalendars.forEach(({ meta, idx: ci }) => {
     const th = document.createElement('div');
     th.className = `cal-header-cell is-calendar${calStatus[ci] === 'error' ? ' error' : ''}`;
@@ -650,9 +669,7 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
           seg.appendChild(lbl);
         }
 
-        seg.addEventListener('mouseenter', e => showTip(e, ev, ci));
-        seg.addEventListener('mousemove', moveTip);
-        seg.addEventListener('mouseleave', hideTip);
+        attachTooltipHandlers(seg, ev, ci);
         cell.appendChild(seg);
       }
 
@@ -679,21 +696,98 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
 
 const tooltip = document.getElementById('tooltip');
 
-function showTip(e, ev, ci) {
+function tooltipKey(ev, ci) {
+  return `${ci}:${ev.start.getTime()}:${ev.end.getTime()}:${ev.summary || ''}`;
+}
+
+function setTooltipContent(ev, ci) {
   const nights = bookingNights(ev);
   tooltip.innerHTML = `
     <strong>${bookingTitle(ev)}</strong>
-    <div class="tip-row tip-in">↓ Check-in &ensp;${fmtFull(ev.start)}</div>
-    <div class="tip-row tip-out">↑ Check-out  ${fmtFull(ev.end)}</div>
+    <div class="tip-row tip-in">↓ Entrada &ensp;${fmtFull(ev.start)}</div>
+    <div class="tip-row tip-out">↑ Saída &ensp;${fmtFull(ev.end)}</div>
     <div class="tip-nights">${nightsLabel(nights)}</div>`;
   tooltip.style.borderColor = colorForCalendar(ci);
+}
+
+function positionTooltip(clientX, clientY) {
+  const margin = 12;
+  const offset = 14;
+  const rect = tooltip.getBoundingClientRect();
+  const maxLeft = Math.max(margin, window.innerWidth - rect.width - margin);
+  const maxTop = Math.max(margin, window.innerHeight - rect.height - margin);
+
+  tooltip.style.left = `${clamp(clientX + offset, margin, maxLeft)}px`;
+  tooltip.style.top = `${clamp(clientY + offset, margin, maxTop)}px`;
+}
+
+function showTipAt(clientX, clientY, ev, ci, { pinned = false, key = tooltipKey(ev, ci) } = {}) {
+  setTooltipContent(ev, ci);
   tooltip.style.display = 'block';
-  moveTip(e);
+  tooltip.dataset.pinned = pinned ? 'true' : 'false';
+  tooltip.dataset.bookingKey = key;
+  positionTooltip(clientX, clientY);
 }
+
+function showTip(e, ev, ci) {
+  showTipAt(e.clientX, e.clientY, ev, ci);
+}
+
 function moveTip(e) {
-  tooltip.style.left = (e.clientX + 14) + 'px';
-  tooltip.style.top = (e.clientY + 14) + 'px';
+  if (tooltip.style.display !== 'block' || tooltip.dataset.pinned === 'true') {
+    return;
+  }
+
+  positionTooltip(e.clientX, e.clientY);
 }
-function hideTip() { tooltip.style.display = 'none'; }
+
+function hideTip(force = false) {
+  if (!force && tooltip.dataset.pinned === 'true') {
+    return;
+  }
+
+  tooltip.style.display = 'none';
+  tooltip.dataset.pinned = 'false';
+  tooltip.dataset.bookingKey = '';
+}
+
+function showPinnedTipForTarget(target, ev, ci) {
+  const key = tooltipKey(ev, ci);
+  const isSamePinned = tooltip.dataset.pinned === 'true' && tooltip.dataset.bookingKey === key;
+
+  if (isSamePinned) {
+    hideTip(true);
+    return;
+  }
+
+  const rect = target.getBoundingClientRect();
+  showTipAt(rect.left + (rect.width / 2), rect.bottom, ev, ci, { pinned: true, key });
+}
+
+function attachTooltipHandlers(target, ev, ci) {
+  target.tabIndex = 0;
+  target.setAttribute('role', 'button');
+  target.setAttribute('aria-label', `${bookingTitle(ev)}, entrada ${fmtFull(ev.start)}, saída ${fmtFull(ev.end)}, ${nightsLabel(bookingNights(ev))}`);
+  target.addEventListener('mouseenter', (event) => showTip(event, ev, ci));
+  target.addEventListener('mousemove', moveTip);
+  target.addEventListener('mouseleave', () => hideTip());
+  target.addEventListener('blur', () => hideTip(true));
+  target.addEventListener('click', (event) => {
+    event.stopPropagation();
+    showPinnedTipForTarget(target, ev, ci);
+  });
+  target.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      showPinnedTipForTarget(target, ev, ci);
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      hideTip(true);
+      target.blur();
+    }
+  });
+}
 
 window.loadMoreMonths = loadMoreMonths;

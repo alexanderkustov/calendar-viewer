@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" data-app-root=".">
+<html lang="pt-PT" data-app-root=".">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, max-image-preview:none, max-snippet:0, max-video-preview:0">
 <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, max-image-preview:none, max-snippet:0, max-video-preview:0">
-<title>Stay Timeline</title>
+<title>Calendário de Estadias</title>
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="./style.css">
 </head>
@@ -14,20 +14,19 @@
 <div class="topbar">
   <div class="topbar-inner">
     <div class="status-bar" id="statusBar">
-      <div class="location-tabs" id="locationTabs" role="tablist" aria-label="Calendar location"></div>
+      <div class="location-tabs" id="locationTabs" role="tablist" aria-label="Localização"></div>
       <div class="toggle-group" id="toggleGroup"></div>
-      <div class="last-updated" id="lastUpdated" aria-live="polite">Last updated: —</div>
-      <button class="refresh-btn" id="refreshBtn" type="button" onclick="loadAll()">↺ Refresh</button>
+      <div class="last-updated" id="lastUpdated" aria-live="polite">Última atualização: —</div>
     </div>
   </div>
 </div>
 
 <div class="main">
-  <div id="loadingMsg" style="display:none; justify-content:center; align-items:center; font-size:1.2em; color:#2e6da4; margin-bottom:10px;">Loading calendars...</div>
+  <div id="loadingMsg" style="display:none; justify-content:center; align-items:center; font-size:1.2em; color:#2e6da4; margin-bottom:10px;">A carregar calendários...</div>
   <div class="error-banner" id="errorBanner"></div>
   <div id="calendarContainer"></div>
   <div class="calendar-actions">
-    <button class="load-more-btn" id="loadMoreBtn" type="button" onclick="loadMoreMonths()">Load more</button>
+    <button class="load-more-btn" id="loadMoreBtn" type="button" onclick="loadMoreMonths()">Carregar mais meses</button>
   </div>
 </div>
 
