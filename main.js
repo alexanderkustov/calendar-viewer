@@ -47,7 +47,7 @@ function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); retu
 function sameDay(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(); }
 function fmtFull(d) { return d.toLocaleDateString(LOCALE, { day: 'numeric', month: 'short', year: 'numeric' }); }
 function fmtShort(d) { return d.toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' }); }
-function fmtDayOnly(d) { return d.toLocaleDateString(LOCALE, { day: 'numeric' }); }
+function fmtDayOnly(d) { return d.getDate(); }
 function formatTimestamp(d) {
   return d.toLocaleString(LOCALE, {
     day: '2-digit',
