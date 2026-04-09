@@ -2,17 +2,6 @@
   {
     "start": {
       "type": "date",
-      "value": "2026-04-06"
-    },
-    "end": {
-      "type": "date",
-      "value": "2026-04-07"
-    },
-    "summary": "Reserved"
-  },
-  {
-    "start": {
-      "type": "date",
       "value": "2026-04-07"
     },
     "end": {
@@ -134,11 +123,11 @@
   {
     "start": {
       "type": "date",
-      "value": "2027-01-03"
+      "value": "2027-01-04"
     },
     "end": {
       "type": "date",
-      "value": "2027-04-09"
+      "value": "2027-04-10"
     },
     "summary": "Airbnb (Not available)"
   }
