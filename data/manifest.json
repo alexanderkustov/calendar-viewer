@@ -1,6 +1,12 @@
 {
-  "generatedAt": "2026-04-12T15:53:45.734Z",
+  "generatedAt": "2026-04-12T19:09:52.343Z",
   "calendarCount": 15,
-  "staleCalendarCount": 0,
-  "staleCalendars": []
+  "staleCalendarCount": 1,
+  "staleCalendars": [
+    {
+      "id": 7,
+      "name": "Raul 24 - 3",
+      "reason": "Not a valid iCal response"
+    }
+  ]
 }
