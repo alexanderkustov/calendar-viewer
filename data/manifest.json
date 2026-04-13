@@ -1,6 +1,12 @@
 {
-  "generatedAt": "2026-04-12T21:51:16.269Z",
+  "generatedAt": "2026-04-13T03:54:08.480Z",
   "calendarCount": 15,
-  "staleCalendarCount": 0,
-  "staleCalendars": []
+  "staleCalendarCount": 1,
+  "staleCalendars": [
+    {
+      "id": 5,
+      "name": "Portimao G137",
+      "reason": "Not a valid iCal response"
+    }
+  ]
 }
