@@ -343,11 +343,11 @@
   {
     "start": {
       "type": "date",
-      "value": "2027-01-19"
+      "value": "2027-01-20"
     },
     "end": {
       "type": "date",
-      "value": "2027-04-25"
+      "value": "2027-04-26"
     },
     "summary": "Airbnb (Not available)"
   }
