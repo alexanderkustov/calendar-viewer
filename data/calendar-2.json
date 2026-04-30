@@ -2,17 +2,6 @@
   {
     "start": {
       "type": "date",
-      "value": "2026-04-27"
-    },
-    "end": {
-      "type": "date",
-      "value": "2026-04-28"
-    },
-    "summary": "Reserved"
-  },
-  {
-    "start": {
-      "type": "date",
       "value": "2026-04-29"
     },
     "end": {
@@ -238,17 +227,6 @@
     "end": {
       "type": "date",
       "value": "2026-09-05"
-    },
-    "summary": "Reserved"
-  },
-  {
-    "start": {
-      "type": "date",
-      "value": "2026-09-05"
-    },
-    "end": {
-      "type": "date",
-      "value": "2026-09-07"
     },
     "summary": "Reserved"
   },
