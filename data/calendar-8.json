@@ -57,6 +57,39 @@
   {
     "start": {
       "type": "date",
+      "value": "2026-08-28"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-08-29"
+    },
+    "summary": "Airbnb (Not available)"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-08-29"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-03"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-03"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-04"
+    },
+    "summary": "Airbnb (Not available)"
+  },
+  {
+    "start": {
+      "type": "date",
       "value": "2026-09-09"
     },
     "end": {
