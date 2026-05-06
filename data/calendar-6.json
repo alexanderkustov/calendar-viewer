@@ -321,17 +321,6 @@
   {
     "start": {
       "type": "date",
-      "value": "2027-04-19"
-    },
-    "end": {
-      "type": "date",
-      "value": "2027-04-26"
-    },
-    "summary": "Reserved"
-  },
-  {
-    "start": {
-      "type": "date",
       "value": "2027-05-01"
     },
     "end": {
