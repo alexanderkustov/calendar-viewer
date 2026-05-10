@@ -222,11 +222,11 @@
   {
     "start": {
       "type": "date",
-      "value": "2027-02-03"
+      "value": "2027-02-04"
     },
     "end": {
       "type": "date",
-      "value": "2027-05-10"
+      "value": "2027-05-11"
     },
     "summary": "Airbnb (Not available)"
   }
