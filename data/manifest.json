@@ -1,12 +1,6 @@
 {
-  "generatedAt": "2026-06-18T10:49:04.682Z",
+  "generatedAt": "2026-06-18T15:54:01.882Z",
   "calendarCount": 15,
-  "staleCalendarCount": 1,
-  "staleCalendars": [
-    {
-      "id": 4,
-      "name": "Portimao J138",
-      "reason": "Not a valid iCal response"
-    }
-  ]
+  "staleCalendarCount": 0,
+  "staleCalendars": []
 }
