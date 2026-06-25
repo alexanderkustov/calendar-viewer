@@ -13,22 +13,22 @@
   {
     "start": {
       "type": "date",
-      "value": "2026-06-29"
-    },
-    "end": {
-      "type": "date",
-      "value": "2026-06-30"
-    },
-    "summary": "Airbnb (Not available)"
-  },
-  {
-    "start": {
-      "type": "date",
       "value": "2026-07-13"
     },
     "end": {
       "type": "date",
       "value": "2026-07-17"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-07-17"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-07-19"
     },
     "summary": "Reserved"
   },
@@ -46,17 +46,6 @@
   {
     "start": {
       "type": "date",
-      "value": "2026-07-29"
-    },
-    "end": {
-      "type": "date",
-      "value": "2026-07-30"
-    },
-    "summary": "Airbnb (Not available)"
-  },
-  {
-    "start": {
-      "type": "date",
       "value": "2026-07-30"
     },
     "end": {
@@ -64,17 +53,6 @@
       "value": "2026-08-02"
     },
     "summary": "Reserved"
-  },
-  {
-    "start": {
-      "type": "date",
-      "value": "2026-08-02"
-    },
-    "end": {
-      "type": "date",
-      "value": "2026-08-03"
-    },
-    "summary": "Airbnb (Not available)"
   },
   {
     "start": {
@@ -105,7 +83,40 @@
     },
     "end": {
       "type": "date",
-      "value": "2026-08-10"
+      "value": "2026-08-12"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-08-12"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-08-13"
+    },
+    "summary": "Airbnb (Not available)"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-08-13"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-08-19"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-08-19"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-08-20"
     },
     "summary": "Airbnb (Not available)"
   },
