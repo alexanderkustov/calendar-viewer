@@ -19,6 +19,7 @@ const LOCATION_TABS = LOCATION_ROUTES.filter((location) => location.showInTabs);
 const CALENDARS_META = [
   { name: "Pardais 205", location: 'albufeira', sources: [0] },
   { name: "Silchoro 1205", location: 'albufeira', sources: [1] },
+  { name: "Silchoro 404", location: 'albufeira', sources: [15] },
   { name: "Antero A7", location: 'albufeira', sources: [2, 3] },
   { name: "Portimao J138", location: 'portimao', sources: [4] },
   { name: "Portimao G137", location: 'portimao', sources: [5] },

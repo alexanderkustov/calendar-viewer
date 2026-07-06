@@ -59,6 +59,10 @@ const CALENDARS = [
     name: "Eulalia",
     url: "https://www.airbnb.com/calendar/ical/1227650987862879407.ics?t=b7075d6ad7574d658c57351d3da09b85",
   },
+  {
+    name: "Silchoro 404",
+    url: "https://www.airbnb.co.uk/calendar/ical/1723879199559349344.ics?t=20fe3244dbe54ae6823b5a3caa672aae",
+  },
 ];
 
 module.exports = {
