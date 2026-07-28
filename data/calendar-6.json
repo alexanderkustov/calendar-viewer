@@ -226,50 +226,6 @@
     },
     "end": {
       "type": "date",
-      "value": "2027-05-20"
-    },
-    "summary": "Airbnb (Not available)"
-  },
-  {
-    "start": {
-      "type": "date",
-      "value": "2027-05-21"
-    },
-    "end": {
-      "type": "date",
-      "value": "2027-05-22"
-    },
-    "summary": "Airbnb (Not available)"
-  },
-  {
-    "start": {
-      "type": "date",
-      "value": "2027-05-31"
-    },
-    "end": {
-      "type": "date",
-      "value": "2027-06-01"
-    },
-    "summary": "Airbnb (Not available)"
-  },
-  {
-    "start": {
-      "type": "date",
-      "value": "2027-06-02"
-    },
-    "end": {
-      "type": "date",
-      "value": "2027-06-20"
-    },
-    "summary": "Airbnb (Not available)"
-  },
-  {
-    "start": {
-      "type": "date",
-      "value": "2027-07-23"
-    },
-    "end": {
-      "type": "date",
       "value": "2027-07-29"
     },
     "summary": "Airbnb (Not available)"
