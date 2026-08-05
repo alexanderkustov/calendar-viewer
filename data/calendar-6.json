@@ -248,17 +248,6 @@
     },
     "end": {
       "type": "date",
-      "value": "2027-07-23"
-    },
-    "summary": "Airbnb (Not available)"
-  },
-  {
-    "start": {
-      "type": "date",
-      "value": "2027-07-31"
-    },
-    "end": {
-      "type": "date",
       "value": "2027-08-06"
     },
     "summary": "Airbnb (Not available)"
