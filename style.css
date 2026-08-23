@@ -353,6 +353,7 @@ h1 {
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   scrollbar-width: thin;
 }
 
@@ -938,9 +939,9 @@ h1 {
 
 @media (max-width: 600px) {
   :root {
-    --grid-date-col: 64px;
-    --calendar-col-min: 112px;
-    --touch-target: 40px;
+    --grid-date-col: 48px;
+    --calendar-col-min: 84px;
+    --touch-target: 44px;
   }
 
   .topbar,
@@ -988,8 +989,8 @@ h1 {
 
   .cal-header-cell {
     min-height: 54px;
-    font-size: 0.72rem;
-    padding: 0.7rem 0.45rem;
+    font-size: 0.66rem;
+    padding: 0.6rem 0.3rem;
   }
 
   .cal-header-meta {
@@ -997,12 +998,12 @@ h1 {
   }
 
   .date-cell {
-    font-size: 1.15rem;
-    padding-top: 0.6rem;
+    font-size: 1.05rem;
+    padding-top: 0.5rem;
   }
 
   .date-cell .dow-label {
-    font-size: 0.62rem;
+    font-size: 0.56rem;
   }
 
   .booking-row {
@@ -1013,9 +1014,9 @@ h1 {
     padding: 0.16rem;
   }
 
+  /* Bars carry no text on phones; tap a bar for details */
   .seg-text {
-    font-size: 0.46rem;
-    padding: 0 4px;
+    display: none;
   }
 
   .last-updated {
