@@ -79,11 +79,11 @@
   {
     "start": {
       "type": "date",
-      "value": "2027-05-22"
+      "value": "2027-05-23"
     },
     "end": {
       "type": "date",
-      "value": "2027-08-26"
+      "value": "2027-08-27"
     },
     "summary": "Airbnb (Not available)"
   }
