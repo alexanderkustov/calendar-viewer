@@ -960,7 +960,7 @@ h1 {
 @media (max-width: 600px) {
   :root {
     --grid-date-col: 48px;
-    --calendar-col-min: 84px;
+    --calendar-col-min: 108px;
     --touch-target: 44px;
   }
 

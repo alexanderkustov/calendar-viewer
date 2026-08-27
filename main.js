@@ -34,6 +34,11 @@ const CALENDAR_CATEGORIES = [
         messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2553072782?inbox_type=hosting&stay_listing_ids=830105480167579378&trip_stages=CURRENTLY_HOSTING'
       },
       {
+        name: "Silchoro 404",
+        location: 'albufeira',
+        sources: [15]
+      },
+      {
         name: "Antero A7",
         location: 'albufeira',
         sources: [2, 3],

@@ -17,7 +17,18 @@
     },
     "end": {
       "type": "date",
-      "value": "2026-09-02"
+      "value": "2026-08-29"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-08-29"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-08-31"
     },
     "summary": "Reserved"
   },
@@ -29,6 +40,17 @@
     "end": {
       "type": "date",
       "value": "2026-09-02"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-04"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-11"
     },
     "summary": "Reserved"
   },
@@ -62,17 +84,6 @@
     "end": {
       "type": "date",
       "value": "2026-10-05"
-    },
-    "summary": "Reserved"
-  },
-  {
-    "start": {
-      "type": "date",
-      "value": "2026-10-09"
-    },
-    "end": {
-      "type": "date",
-      "value": "2026-10-14"
     },
     "summary": "Reserved"
   },
