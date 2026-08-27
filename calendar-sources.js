@@ -48,7 +48,7 @@ const CALENDARS = [
     url: "https://www.airbnb.com/calendar/ical/40546691.ics?t=d7172bfa75f1444e978602763734f7c0",
   },
   {
-    name: "Пешкадор",
+    name: "Pescadores",
     url: "https://www.airbnb.com/calendar/ical/794191503164393359.ics?t=2402cd489f8143a69f3e3101c9511f4f",
   },
   {

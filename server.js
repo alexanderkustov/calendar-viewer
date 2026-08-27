@@ -54,6 +54,7 @@ function mimeForFile(filePath) {
   if (ext === ".css") return "text/css; charset=utf-8";
   if (ext === ".js") return "application/javascript; charset=utf-8";
   if (ext === ".json") return "application/json; charset=utf-8";
+  if (ext === ".png") return "image/png";
   if (ext === ".txt") return "text/plain; charset=utf-8";
   return "text/html; charset=utf-8";
 }
@@ -101,6 +102,7 @@ const server = http.createServer((req, res) => {
   }
 
   const STATIC = {
+    "/favicon.png": "favicon.png",
     "/style.css": "style.css",
     "/main.js": "main.js",
     "/robots.txt": "robots.txt",

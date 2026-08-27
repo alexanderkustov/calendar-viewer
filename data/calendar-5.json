@@ -2,33 +2,22 @@
   {
     "start": {
       "type": "date",
-      "value": "2026-04-01"
+      "value": "2026-08-24"
     },
     "end": {
       "type": "date",
-      "value": "2026-04-04"
+      "value": "2026-08-28"
     },
     "summary": "Reserved"
   },
   {
     "start": {
       "type": "date",
-      "value": "2026-04-04"
+      "value": "2026-08-28"
     },
     "end": {
       "type": "date",
-      "value": "2026-04-06"
-    },
-    "summary": "Reserved"
-  },
-  {
-    "start": {
-      "type": "date",
-      "value": "2026-07-02"
-    },
-    "end": {
-      "type": "date",
-      "value": "2026-07-07"
+      "value": "2026-08-31"
     },
     "summary": "Reserved"
   },
@@ -46,11 +35,77 @@
   {
     "start": {
       "type": "date",
-      "value": "2026-12-29"
+      "value": "2026-09-06"
     },
     "end": {
       "type": "date",
-      "value": "2027-04-04"
+      "value": "2026-09-09"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-09"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-13"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-13"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-17"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-17"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-22"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-22"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-30"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-10-01"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-11-01"
+    },
+    "summary": "Airbnb (Not available)"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2027-05-24"
+    },
+    "end": {
+      "type": "date",
+      "value": "2027-08-28"
     },
     "summary": "Airbnb (Not available)"
   }

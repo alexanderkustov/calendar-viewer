@@ -19,6 +19,14 @@ A lightweight vanilla JavaScript calendar timeline viewer published as a static 
 
 ## Run locally
 
+Run in one command (sync first, then start server):
+
+```bash
+npm run dev
+```
+
+Or run manually:
+
 ```bash
 npm run sync:calendars
 npm start
