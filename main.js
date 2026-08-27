@@ -56,12 +56,12 @@ const CALENDAR_CATEGORIES = [
   {
     name: 'Mama 1',
     calendars: [
-      { name: "Raul Brandao", location: 'mama-1', sources: [6] },
-      { name: "Serene Albufeira Studio", location: 'mama-1', sources: [7] },
-      { name: "Elegant 2 Bedroom Onda Verde", location: 'mama-1', sources: [10] },
+      { name: "Raul 1", location: 'mama-1', sources: [6] },
+      { name: "Raul Brandao 3", location: 'mama-1', sources: [7] },
+      { name: "Onda Verde", location: 'mama-1', sources: [10] },
       { name: "Balaia 404", location: 'mama-1', sources: [8] },
-      { name: "Vila Magna 503", location: 'mama-1', sources: [] },
-      { name: "Vila Magna 106", location: 'mama-1', sources: [] },
+      { name: "Vila Magna 503", location: 'mama-1', sources: [16] },
+      { name: "Vila Magna 106", location: 'mama-1', sources: [17] },
       { name: "Paraiso 336", location: 'mama-1', sources: [13], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2633130633?inbox_type=hosting&stay_listing_ids=1578004322904051113&trip_stages=CURRENTLY_HOSTING' }
     ]
   },
