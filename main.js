@@ -10,11 +10,12 @@ const APP_ROOT = document.documentElement.dataset.appRoot || '.';
 const APP_ROOT_URL = new URL(APP_ROOT.endsWith('/') ? APP_ROOT : `${APP_ROOT}/`, window.location.href);
 const PAGE_LOCATION_ID = window.__CALENDAR_VIEWER_LOCATION__ || null;
 const LOCATION_ROUTES = [
-  { id: 'albufeira', label: 'Albufeira', slug: '', showInTabs: true },
-  { id: 'portimao', label: 'Portimão', slug: 'portimao', showInTabs: true },
-  { id: 'mama', label: 'Mama', slug: 'mama', showInTabs: false }
+  { id: 'albufeira', label: 'Albufeira', slug: '', tabGroup: 'main' },
+  { id: 'portimao', label: 'Portimão', slug: 'portimao', tabGroup: 'main' },
+  { id: 'mama-1', label: 'Mama 1', slug: 'mama/1', tabGroup: 'mama' },
+  { id: 'mama-2', label: 'Mama 2', slug: 'mama/2', tabGroup: 'mama' },
+  { id: 'mama-3', label: 'Mama 3', slug: 'mama/3', tabGroup: 'mama' }
 ];
-const LOCATION_TABS = LOCATION_ROUTES.filter((location) => location.showInTabs);
 
 const CALENDARS_META = [
   { name: "Pardais 205", location: 'albufeira', sources: [0] },
@@ -22,21 +23,23 @@ const CALENDARS_META = [
   { name: "Antero A7", location: 'albufeira', sources: [2, 3] },
   { name: "Portimao J138", location: 'portimao', sources: [4] },
   { name: "Portimao G137", location: 'portimao', sources: [5] },
-  { name: "Raul 24 - 1", location: 'mama', sources: [6] },
-  { name: "Raul 24 - 3", location: 'mama', sources: [7] },
-  { name: "Balaia 404", location: 'mama', sources: [8] },
-  { name: "Balaia 405", location: 'mama', sources: [9] },
-  { name: "Onda Verde", location: 'mama', sources: [10] },
-  { name: "Aljezur", location: 'mama', sources: [11] },
-  { name: "Pescadores", location: 'mama', sources: [12] },
-  { name: "Paraiso", location: 'mama', sources: [13] },
-  { name: "Eulalia", location: 'mama', sources: [14] }
+  { name: "Calm Albufeira Studio, Raul Brandao", location: 'mama-1', sources: [6] },
+  { name: "Serene Albufeira Studio", location: 'mama-1', sources: [7] },
+  { name: "Elegant 2 Bedroom Onda Verde", location: 'mama-1', sources: [10] },
+  { name: "Quiet Home Balaia 404", location: 'mama-1', sources: [8] },
+  { name: "Vila Magna 503", location: 'mama-1', sources: [] },
+  { name: "Vila Magna 106", location: 'mama-1', sources: [] },
+  { name: "336 Paraiso", location: 'mama-1', sources: [13] },
+  { name: "Пешкадор", location: 'mama-2', sources: [12] },
+  { name: "Cozy House Balaia, Apt. 405", location: 'mama-2', sources: [9] },
+  { name: "Eulalia Casa Blanca", location: 'mama-2', sources: [14] },
+  { name: "Aljezur", location: 'mama-3', sources: [11] }
 ];
 
 let calData = new Array(CALENDARS_META.length).fill(null);
 let calStatus = new Array(CALENDARS_META.length).fill('idle');
 let visible = new Array(CALENDARS_META.length).fill(true); // toggle state
-let activeLocation = LOCATION_TABS[0]?.id || LOCATION_ROUTES[0]?.id || null;
+let activeLocation = LOCATION_ROUTES[0]?.id || null;
 let visibleMonths = INITIAL_VISIBLE_MONTHS;
 let autoRefreshTimerId = null;
 
@@ -123,8 +126,14 @@ function activeLocationLabel() {
   return LOCATION_ROUTES.find((location) => location.id === activeLocation)?.label || activeLocation;
 }
 
+function tabsForLocation(locationId = activeLocation) {
+  const activeRoute = LOCATION_ROUTES.find((location) => location.id === locationId);
+  if (!activeRoute) return [];
+  return LOCATION_ROUTES.filter((location) => location.tabGroup === activeRoute.tabGroup);
+}
+
 function activeLocationShowsTabs() {
-  return LOCATION_ROUTES.find((location) => location.id === activeLocation)?.showInTabs ?? false;
+  return tabsForLocation().length > 1;
 }
 
 function remainingCheckoutLabelForMonth(idx, year, month) {
@@ -179,7 +188,7 @@ function submitPassword() {
 window.addEventListener('DOMContentLoaded', () => {
   const initialLocation = LOCATION_ROUTES.some((location) => location.id === PAGE_LOCATION_ID)
     ? PAGE_LOCATION_ID
-    : LOCATION_TABS[0]?.id || LOCATION_ROUTES[0]?.id || null;
+    : LOCATION_ROUTES[0]?.id || null;
   if (initialLocation) {
     activeLocation = initialLocation;
   }
@@ -307,6 +316,10 @@ async function loadAll() {
 
   await Promise.all(activeCalendars.map(async ({ meta, idx }) => {
     try {
+      if (!meta.sources.length) {
+        throw new Error('fonte iCal em falta');
+      }
+
       const allEvents = [];
       for (const sourceId of meta.sources) {
         allEvents.push(...await loadSourceCalendar(sourceId));
@@ -434,7 +447,7 @@ function renderTabs() {
   tabs.hidden = !activeLocationShowsTabs();
   if (tabs.hidden) return;
 
-  LOCATION_TABS.forEach((location) => {
+  tabsForLocation().forEach((location) => {
     const tab = document.createElement('button');
     tab.type = 'button';
     tab.className = `location-tab${location.id === activeLocation ? ' active' : ''}`;
@@ -551,7 +564,8 @@ function buildOccupancyRow(year, month, activeCalendars) {
   activeCalendars.forEach(({ idx: ci }) => {
     const cell = document.createElement('div');
     cell.className = 'occupancy-cell';
-    cell.innerHTML = `<span class="occupancy-value" style="color:${colorForCalendar(ci)}">${occupancyForMonth(ci, year, month)}%</span>`;
+    const value = calStatus[ci] === 'error' ? '—' : `${occupancyForMonth(ci, year, month)}%`;
+    cell.innerHTML = `<span class="occupancy-value" style="color:${colorForCalendar(ci)}">${value}</span>`;
     row.appendChild(cell);
   });
 

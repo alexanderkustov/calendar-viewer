@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-PT" data-app-root="../..">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, max-image-preview:none, max-snippet:0, max-video-preview:0">
+<meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, max-image-preview:none, max-snippet:0, max-video-preview:0">
+<title>Calendário Mama 1</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="status-bar" id="statusBar">
+      <div class="location-tabs" id="locationTabs" role="tablist" aria-label="Calendário Mama"></div>
+      <div class="toggle-group" id="toggleGroup"></div>
+      <div class="last-updated" id="lastUpdated" aria-live="polite">Última atualização: —</div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div id="loadingMsg" style="display:none; justify-content:center; align-items:center; font-size:1.2em; color:#2e6da4; margin-bottom:10px;">A carregar calendários...</div>
+  <div class="error-banner" id="errorBanner"></div>
+  <div id="calendarContainer"></div>
+  <div class="calendar-actions">
+    <button class="load-more-btn" id="loadMoreBtn" type="button" onclick="loadMoreMonths()">Carregar mais meses</button>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+window.__CALENDAR_VIEWER_LOCATION__ = 'mama-1';
+</script>
+<script src="../../main.js"></script>
+</body>
+</html>
