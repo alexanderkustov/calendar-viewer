@@ -1,0 +1,145 @@
+[
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-08-20"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-08-27"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-08-27"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-08-30"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-08-31"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-02"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-02"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-07"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-07"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-09"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-09"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-13"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-09-14"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-09-21"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-10-01"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-10-13"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-10-15"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-10-18"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-10-19"
+    },
+    "end": {
+      "type": "date",
+      "value": "2026-10-24"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2026-12-25"
+    },
+    "end": {
+      "type": "date",
+      "value": "2027-01-04"
+    },
+    "summary": "Airbnb (Not available)"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2027-03-18"
+    },
+    "end": {
+      "type": "date",
+      "value": "2027-03-21"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2027-05-24"
+    },
+    "end": {
+      "type": "date",
+      "value": "2027-08-28"
+    },
+    "summary": "Airbnb (Not available)"
+  }
+]

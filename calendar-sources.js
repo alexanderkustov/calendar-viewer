@@ -24,23 +24,23 @@ const CALENDARS = [
     url: "https://www.airbnb.co.uk/calendar/ical/1635425171512419857.ics?t=88790fa90b9c4231bab4773dd37fae23",
   },
   {
-    name: "Calm Albufeira Studio, Raul Brandao",
+    name: "Raul 1",
     url: "https://www.airbnb.com/calendar/ical/48891793.ics?t=73cfb63e849d437687262fb8e2525013",
   },
   {
-    name: "Serene Albufeira Studio",
+    name: "Raul Brandao 3",
     url: "https://www.airbnb.com/calendar/ical/1357204030957836095.ics?t=4a8279ab1e014db0bac53800abd50c89",
   },
   {
-    name: "Quiet Home Balaia 404",
+    name: "Balaia 404",
     url: "https://www.airbnb.com/calendar/ical/860089921432271203.ics?t=174efa0cf3ea4db2b8f236c91774fec6",
   },
   {
-    name: "Cozy House Balaia, Apt. 405",
+    name: "Balaia 405",
     url: "https://www.airbnb.com/calendar/ical/885874220580116381.ics?t=7be98b967ae84a8491a876d8aa833b43",
   },
   {
-    name: "Elegant 2 Bedroom Onda Verde",
+    name: "Onda Verde",
     url: "https://www.airbnb.com/calendar/ical/1171811513640036311.ics?t=447e008057484ff9a138b8f44bab0678",
   },
   {
@@ -62,6 +62,14 @@ const CALENDARS = [
   {
     name: "Silchoro 404",
     url: "https://www.airbnb.co.uk/calendar/ical/1723879199559349344.ics?t=20fe3244dbe54ae6823b5a3caa672aae",
+  },
+  {
+    name: "Vila Magna 503",
+    url: "https://www.airbnb.co.uk/calendar/ical/49605195.ics?t=7eec532052004738b0335415cfd339d1",
+  },
+  {
+    name: "Vila Magna 106",
+    url: "https://www.airbnb.co.uk/calendar/ical/41488043.ics?t=a86edbeae16a4259bb2ea27f388a7dc6",
   },
 ];
 

@@ -31,27 +31,27 @@
   },
   {
     "id": 6,
-    "name": "Calm Albufeira Studio, Raul Brandao",
+    "name": "Raul 1",
     "sourcePath": "calendar-6.json"
   },
   {
     "id": 7,
-    "name": "Serene Albufeira Studio",
+    "name": "Raul Brandao 3",
     "sourcePath": "calendar-7.json"
   },
   {
     "id": 8,
-    "name": "Quiet Home Balaia 404",
+    "name": "Balaia 404",
     "sourcePath": "calendar-8.json"
   },
   {
     "id": 9,
-    "name": "Cozy House Balaia, Apt. 405",
+    "name": "Balaia 405",
     "sourcePath": "calendar-9.json"
   },
   {
     "id": 10,
-    "name": "Elegant 2 Bedroom Onda Verde",
+    "name": "Onda Verde",
     "sourcePath": "calendar-10.json"
   },
   {
@@ -78,5 +78,15 @@
     "id": 15,
     "name": "Silchoro 404",
     "sourcePath": "calendar-15.json"
+  },
+  {
+    "id": 16,
+    "name": "Vila Magna 503",
+    "sourcePath": "calendar-16.json"
+  },
+  {
+    "id": 17,
+    "name": "Vila Magna 106",
+    "sourcePath": "calendar-17.json"
   }
 ]

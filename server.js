@@ -11,13 +11,15 @@ const PORT = process.env.PORT || 3000;
 const LOCATION_ROUTES = new Set([
   "/albufeira",
   "/portimao",
+  "/aljezur",
   "/mama/1",
   "/mama/2",
-  "/mama/3",
 ]);
 const LOCATION_REDIRECTS = new Map([
   ["/mama", "/mama/1/"],
   ["/mama/index.html", "/mama/1/"],
+  ["/mama/3", "/aljezur/"],
+  ["/mama/3/index.html", "/aljezur/"],
 ]);
 const LOCATION_ROUTE_FILES = new Map();
 for (const routePath of LOCATION_ROUTES) {

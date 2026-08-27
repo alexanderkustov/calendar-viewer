@@ -39,7 +39,7 @@ Then open:
 - `http://localhost:3000/portimao/`
 - `http://localhost:3000/mama/1/`
 - `http://localhost:3000/mama/2/`
-- `http://localhost:3000/mama/3/`
+- `http://localhost:3000/aljezur/`
 
 ## Configuration
 
@@ -48,6 +48,7 @@ Then open:
 - Keep `CALENDARS` and `CALENDARS_META` in sync when adding or removing sources.
 - Edit `LOCATION_ROUTES` in `main.js` to control tabs and route views. Routes with the same `tabGroup` appear together.
 - `/mama/` redirects to `/mama/1/`.
+- `/mama/3/` redirects to `/aljezur/`.
 - Edit `MAX_DAYS_AHEAD` and `INITIAL_VISIBLE_MONTHS` in `main.js` to tune the default horizon.
 
 ## Refreshing data

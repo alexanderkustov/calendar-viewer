@@ -14,7 +14,7 @@ const LOCATION_ROUTES = [
   { id: 'portimao', label: 'Portimão', slug: 'portimao', tabGroup: 'main' },
   { id: 'mama-1', label: 'Mama 1', slug: 'mama/1', tabGroup: 'mama' },
   { id: 'mama-2', label: 'Mama 2', slug: 'mama/2', tabGroup: 'mama' },
-  { id: 'mama-3', label: 'Mama 3', slug: 'mama/3', tabGroup: 'mama' }
+  { id: 'aljezur', label: 'Aljezur', slug: 'aljezur', tabGroup: 'mama' }
 ];
 
 const CALENDAR_CATEGORIES = [
@@ -74,9 +74,9 @@ const CALENDAR_CATEGORIES = [
     ]
   },
   {
-    name: 'Mama 3',
+    name: 'Aljezur',
     calendars: [
-      { name: "Aljezur", location: 'mama-3', sources: [11], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2573815201?inbox_type=hosting&stay_listing_ids=40546691&trip_stages=CURRENTLY_HOSTING' }
+      { name: "Aljezur", location: 'aljezur', sources: [11], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2573815201?inbox_type=hosting&stay_listing_ids=40546691&trip_stages=CURRENTLY_HOSTING' }
     ]
   }
 ];
