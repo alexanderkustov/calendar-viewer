@@ -4,7 +4,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "sync:calendars": "node scripts/sync-static-data.js"
+    "sync:calendars": "node scripts/sync-static-data.js",
+    "dev": "npm run sync:calendars && npm start"
   },
   "dependencies": {}
 }

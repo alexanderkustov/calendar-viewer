@@ -8,7 +8,17 @@ const path = require("path");
 
 const HOST = process.env.HOST || "127.0.0.1";
 const PORT = process.env.PORT || 3000;
-const LOCATION_ROUTES = new Set(["/albufeira", "/portimao", "/mama"]);
+const LOCATION_ROUTES = new Set([
+  "/albufeira",
+  "/portimao",
+  "/mama/1",
+  "/mama/2",
+  "/mama/3",
+]);
+const LOCATION_REDIRECTS = new Map([
+  ["/mama", "/mama/1/"],
+  ["/mama/index.html", "/mama/1/"],
+]);
 const LOCATION_ROUTE_FILES = new Map();
 for (const routePath of LOCATION_ROUTES) {
   const filePath = `${routePath.slice(1)}/index.html`;
@@ -44,6 +54,7 @@ function mimeForFile(filePath) {
   if (ext === ".css") return "text/css; charset=utf-8";
   if (ext === ".js") return "application/javascript; charset=utf-8";
   if (ext === ".json") return "application/json; charset=utf-8";
+  if (ext === ".png") return "image/png";
   if (ext === ".txt") return "text/plain; charset=utf-8";
   return "text/html; charset=utf-8";
 }
@@ -68,6 +79,12 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (LOCATION_REDIRECTS.has(pathname)) {
+    res.writeHead(301, { Location: LOCATION_REDIRECTS.get(pathname) });
+    res.end();
+    return;
+  }
+
   if (LOCATION_ROUTES.has(pathname) && rawPathname !== `${pathname}/`) {
     res.writeHead(301, { Location: `${pathname}/` });
     res.end();
@@ -85,6 +102,7 @@ const server = http.createServer((req, res) => {
   }
 
   const STATIC = {
+    "/favicon.png": "favicon.png",
     "/style.css": "style.css",
     "/main.js": "main.js",
     "/robots.txt": "robots.txt",
@@ -114,6 +132,7 @@ if (require.main === module) {
 }
 
 module.exports = {
+  LOCATION_REDIRECTS,
   LOCATION_ROUTES,
   normalizePathname,
   server,

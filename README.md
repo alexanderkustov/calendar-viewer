@@ -19,6 +19,14 @@ A lightweight vanilla JavaScript calendar timeline viewer published as a static 
 
 ## Run locally
 
+Run in one command (sync first, then start server):
+
+```bash
+npm run dev
+```
+
+Or run manually:
+
 ```bash
 npm run sync:calendars
 npm start
@@ -29,14 +37,17 @@ Then open:
 - `http://localhost:3000`
 - `http://localhost:3000/albufeira/`
 - `http://localhost:3000/portimao/`
-- `http://localhost:3000/mama/`
+- `http://localhost:3000/mama/1/`
+- `http://localhost:3000/mama/2/`
+- `http://localhost:3000/mama/3/`
 
 ## Configuration
 
 - Edit `CALENDARS` in `calendar-sources.js` to change source feeds.
 - Edit `CALENDARS_META` in `main.js` to map source feeds onto property rows.
 - Keep `CALENDARS` and `CALENDARS_META` in sync when adding or removing sources.
-- Edit `LOCATION_ROUTES` in `main.js` to control tabs and route-only views.
+- Edit `LOCATION_ROUTES` in `main.js` to control tabs and route views. Routes with the same `tabGroup` appear together.
+- `/mama/` redirects to `/mama/1/`.
 - Edit `MAX_DAYS_AHEAD` and `INITIAL_VISIBLE_MONTHS` in `main.js` to tune the default horizon.
 
 ## Refreshing data

@@ -10,34 +10,80 @@ const APP_ROOT = document.documentElement.dataset.appRoot || '.';
 const APP_ROOT_URL = new URL(APP_ROOT.endsWith('/') ? APP_ROOT : `${APP_ROOT}/`, window.location.href);
 const PAGE_LOCATION_ID = window.__CALENDAR_VIEWER_LOCATION__ || null;
 const LOCATION_ROUTES = [
-  { id: 'albufeira', label: 'Albufeira', slug: '', showInTabs: true },
-  { id: 'portimao', label: 'Portimão', slug: 'portimao', showInTabs: true },
-  { id: 'mama', label: 'Mama', slug: 'mama', showInTabs: false }
+  { id: 'albufeira', label: 'Albufeira', slug: '', tabGroup: 'main' },
+  { id: 'portimao', label: 'Portimão', slug: 'portimao', tabGroup: 'main' },
+  { id: 'mama-1', label: 'Mama 1', slug: 'mama/1', tabGroup: 'mama' },
+  { id: 'mama-2', label: 'Mama 2', slug: 'mama/2', tabGroup: 'mama' },
+  { id: 'mama-3', label: 'Mama 3', slug: 'mama/3', tabGroup: 'mama' }
 ];
-const LOCATION_TABS = LOCATION_ROUTES.filter((location) => location.showInTabs);
 
-const CALENDARS_META = [
-  { name: "Pardais 205", location: 'albufeira', sources: [0] },
-  { name: "Silchoro 1205", location: 'albufeira', sources: [1] },
-  { name: "Silchoro 404", location: 'albufeira', sources: [15] },
-  { name: "Antero A7", location: 'albufeira', sources: [2, 3] },
-  { name: "Portimao J138", location: 'portimao', sources: [4] },
-  { name: "Portimao G137", location: 'portimao', sources: [5] },
-  { name: "Raul 24 - 1", location: 'mama', sources: [6] },
-  { name: "Raul 24 - 3", location: 'mama', sources: [7] },
-  { name: "Balaia 404", location: 'mama', sources: [8] },
-  { name: "Balaia 405", location: 'mama', sources: [9] },
-  { name: "Onda Verde", location: 'mama', sources: [10] },
-  { name: "Aljezur", location: 'mama', sources: [11] },
-  { name: "Pescadores", location: 'mama', sources: [12] },
-  { name: "Paraiso", location: 'mama', sources: [13] },
-  { name: "Eulalia", location: 'mama', sources: [14] }
+const CALENDAR_CATEGORIES = [
+  {
+    name: 'Albufeira',
+    calendars: [
+      {
+        name: "Pardais 205",
+        location: 'albufeira',
+        sources: [0],
+        messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2575905205?inbox_type=hosting&stay_listing_ids=1611613204985424515&trip_stages=CURRENTLY_HOSTING'
+      },
+      {
+        name: "Silchoro 1205",
+        location: 'albufeira',
+        sources: [1],
+        messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2553072782?inbox_type=hosting&stay_listing_ids=830105480167579378&trip_stages=CURRENTLY_HOSTING'
+      },
+      {
+        name: "Antero A7",
+        location: 'albufeira',
+        sources: [2, 3],
+        messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2615151375?inbox_type=hosting&stay_listing_ids=914217783547257427&trip_stages=CURRENTLY_HOSTING'
+      }
+    ]
+  },
+  {
+    name: 'Portimao',
+    calendars: [
+      { name: "Portimao J138", location: 'portimao', sources: [4], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2609168651?inbox_type=hosting&stay_listing_ids=1635428772732094156&trip_stages=CURRENTLY_HOSTING' },
+      { name: "Portimao G137", location: 'portimao', sources: [5], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2532292472?inbox_type=hosting&stay_listing_ids=1635425171512419857&trip_stages=CURRENTLY_HOSTING' }
+    ]
+  },
+  {
+    name: 'Mama 1',
+    calendars: [
+      { name: "Raul Brandao", location: 'mama-1', sources: [6] },
+      { name: "Serene Albufeira Studio", location: 'mama-1', sources: [7] },
+      { name: "Elegant 2 Bedroom Onda Verde", location: 'mama-1', sources: [10] },
+      { name: "Balaia 404", location: 'mama-1', sources: [8] },
+      { name: "Vila Magna 503", location: 'mama-1', sources: [] },
+      { name: "Vila Magna 106", location: 'mama-1', sources: [] },
+      { name: "Paraiso 336", location: 'mama-1', sources: [13], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2633130633?inbox_type=hosting&stay_listing_ids=1578004322904051113&trip_stages=CURRENTLY_HOSTING' }
+    ]
+  },
+  {
+    name: 'Mama 2',
+    calendars: [
+      { name: "Pescadores", location: 'mama-2', sources: [12], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2622567070?inbox_type=hosting&stay_listing_ids=794191503164393359&trip_stages=CURRENTLY_HOSTING' },
+      { name: "Balaia 405", location: 'mama-2', sources: [9], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2514855243?inbox_type=hosting&stay_listing_ids=885874220580116381&trip_stages=CURRENTLY_HOSTING' },
+      { name: "Eulalia Casa Blanca", location: 'mama-2', sources: [14], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/?inbox_type=hosting&stay_listing_ids=1227650987862879407&trip_stages=CURRENTLY_HOSTING' }
+    ]
+  },
+  {
+    name: 'Mama 3',
+    calendars: [
+      { name: "Aljezur", location: 'mama-3', sources: [11], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2573815201?inbox_type=hosting&stay_listing_ids=40546691&trip_stages=CURRENTLY_HOSTING' }
+    ]
+  }
 ];
+
+const CALENDARS_META = CALENDAR_CATEGORIES.flatMap(({ name: category, calendars }) =>
+  calendars.map((calendar) => ({ ...calendar, category }))
+);
 
 let calData = new Array(CALENDARS_META.length).fill(null);
 let calStatus = new Array(CALENDARS_META.length).fill('idle');
 let visible = new Array(CALENDARS_META.length).fill(true); // toggle state
-let activeLocation = LOCATION_TABS[0]?.id || LOCATION_ROUTES[0]?.id || null;
+let activeLocation = LOCATION_ROUTES[0]?.id || null;
 let visibleMonths = INITIAL_VISIBLE_MONTHS;
 let autoRefreshTimerId = null;
 
@@ -125,8 +171,14 @@ function activeLocationLabel() {
   return LOCATION_ROUTES.find((location) => location.id === activeLocation)?.label || activeLocation;
 }
 
+function tabsForLocation(locationId = activeLocation) {
+  const activeRoute = LOCATION_ROUTES.find((location) => location.id === locationId);
+  if (!activeRoute) return [];
+  return LOCATION_ROUTES.filter((location) => location.tabGroup === activeRoute.tabGroup);
+}
+
 function activeLocationShowsTabs() {
-  return LOCATION_ROUTES.find((location) => location.id === activeLocation)?.showInTabs ?? false;
+  return tabsForLocation().length > 1;
 }
 
 function remainingCheckoutLabelForMonth(idx, year, month) {
@@ -136,6 +188,24 @@ function remainingCheckoutLabelForMonth(idx, year, month) {
   const remainingDates = remainingCheckoutDatesForMonth(idx, year, month);
   if (!remainingDates.length) return 'Sem 🚪 este mês';
   return `🚪: ${remainingDates.map((date) => fmtDayOnly(date)).join(', ')}`;
+}
+
+function buildPropertyTitleNode(meta) {
+  if (!meta?.messageUrl) {
+    const title = document.createElement('span');
+    title.className = 'cal-header-name';
+    title.textContent = meta?.name || '';
+    return title;
+  }
+
+  const link = document.createElement('a');
+  link.className = 'cal-header-name cal-header-name-link';
+  link.href = meta.messageUrl;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  link.textContent = meta.name;
+  link.title = 'Abrir mensagens Airbnb';
+  return link;
 }
 
 // ─── Occupancy calc ──────────────────────────────────────────────────────────
@@ -181,7 +251,7 @@ function submitPassword() {
 window.addEventListener('DOMContentLoaded', () => {
   const initialLocation = LOCATION_ROUTES.some((location) => location.id === PAGE_LOCATION_ID)
     ? PAGE_LOCATION_ID
-    : LOCATION_TABS[0]?.id || LOCATION_ROUTES[0]?.id || null;
+    : LOCATION_ROUTES[0]?.id || null;
   if (initialLocation) {
     activeLocation = initialLocation;
   }
@@ -309,6 +379,10 @@ async function loadAll() {
 
   await Promise.all(activeCalendars.map(async ({ meta, idx }) => {
     try {
+      if (!meta.sources.length) {
+        throw new Error('fonte iCal em falta');
+      }
+
       const allEvents = [];
       for (const sourceId of meta.sources) {
         allEvents.push(...await loadSourceCalendar(sourceId));
@@ -436,7 +510,7 @@ function renderTabs() {
   tabs.hidden = !activeLocationShowsTabs();
   if (tabs.hidden) return;
 
-  LOCATION_TABS.forEach((location) => {
+  tabsForLocation().forEach((location) => {
     const tab = document.createElement('button');
     tab.type = 'button';
     tab.className = `location-tab${location.id === activeLocation ? ' active' : ''}`;
@@ -553,7 +627,8 @@ function buildOccupancyRow(year, month, activeCalendars) {
   activeCalendars.forEach(({ idx: ci }) => {
     const cell = document.createElement('div');
     cell.className = 'occupancy-cell';
-    cell.innerHTML = `<span class="occupancy-value" style="color:${colorForCalendar(ci)}">${occupancyForMonth(ci, year, month)}%</span>`;
+    const value = calStatus[ci] === 'error' ? '—' : `${occupancyForMonth(ci, year, month)}%`;
+    cell.innerHTML = `<span class="occupancy-value" style="color:${colorForCalendar(ci)}">${value}</span>`;
     row.appendChild(cell);
   });
 
@@ -594,12 +669,24 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
   activeCalendars.forEach(({ meta, idx: ci }) => {
     const th = document.createElement('div');
     th.className = `cal-header-cell is-calendar${calStatus[ci] === 'error' ? ' error' : ''}`;
-    th.innerHTML = `
-        <span class="label-dot" style="background:${colorForCalendar(ci)}"></span>
-      <span class="cal-header-copy">
-        <span class="cal-header-name">${meta.name}</span>
-        <span class="cal-header-meta">${remainingCheckoutLabelForMonth(ci, year, month)}</span>
-      </span>`;
+    const dot = document.createElement('span');
+    dot.className = 'label-dot';
+    dot.style.background = colorForCalendar(ci);
+
+    const copy = document.createElement('span');
+    copy.className = 'cal-header-copy';
+
+    const nameNode = buildPropertyTitleNode(meta);
+
+    const metaNode = document.createElement('span');
+    metaNode.className = 'cal-header-meta';
+    metaNode.textContent = remainingCheckoutLabelForMonth(ci, year, month);
+
+    copy.appendChild(nameNode);
+    copy.appendChild(metaNode);
+
+    th.appendChild(dot);
+    th.appendChild(copy);
     headerRow.appendChild(th);
   });
   card.appendChild(headerRow);
