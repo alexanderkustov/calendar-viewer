@@ -65,4 +65,5 @@ GitHub Pages is deployed from the checked-in static files. The refresh workflow 
 - The generated `data/` files are public on GitHub Pages.
 - There is no production API or live proxy anymore.
 - On smaller screens, the month grid scrolls horizontally and booking blocks can be tapped to show stay details.
+- Each month exposes table semantics, and every stay has one keyboard-accessible details control.
 - The interface labels and dates are shown in Portuguese (`pt-PT`).

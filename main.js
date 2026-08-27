@@ -1,4 +1,4 @@
-const COLORS = ['#3E92CF', '#60C6C9', '#1A558A', '#9B51E0', '#27AE60', '#F2994A', '#E76F51', '#2A9D8F', '#264653', '#E9C46A'];
+const COLORS = ['#23689D', '#00666B', '#1A558A', '#7130A5', '#0D6B35', '#934800', '#A33D29', '#0D675E', '#264653', '#745C00'];
 const LOCALE = 'pt-PT';
 const MAX_DAYS_AHEAD = 180;
 const INITIAL_VISIBLE_MONTHS = 2;
@@ -122,6 +122,10 @@ function bookingTitle(ev) {
 function formatMonthTitle(year, month) {
   return `${MONTH_TITLES_SHORT[month]}${String(year).slice(-2)}`;
 }
+function formatMonthAccessibleTitle(year, month) {
+  const label = new Date(year, month, 1).toLocaleDateString(LOCALE, { month: 'long', year: 'numeric' });
+  return label.charAt(0).toLocaleUpperCase(LOCALE) + label.slice(1);
+}
 function remainingCheckoutDatesForMonth(ci, year, month, from = startOfDay(new Date())) {
   const monthStart = new Date(year, month, 1);
   const monthEnd = new Date(year, month + 1, 1);
@@ -187,12 +191,13 @@ function activeLocationShowsTabs() {
 }
 
 function remainingCheckoutLabelForMonth(idx, year, month) {
-  if (calStatus[idx] === 'loading') return '🚪: a carregar...';
-  if (calStatus[idx] === 'error') return '🚪 indisponível';
+  if (calStatus[idx] === 'loading') return 'Saídas: a carregar…';
+  if (calStatus[idx] === 'unavailable') return 'Fonte por configurar';
+  if (calStatus[idx] === 'error') return 'Saídas indisponíveis';
 
   const remainingDates = remainingCheckoutDatesForMonth(idx, year, month);
-  if (!remainingDates.length) return 'Sem 🚪 este mês';
-  return `🚪: ${remainingDates.map((date) => fmtDayOnly(date)).join(', ')}`;
+  if (!remainingDates.length) return 'Sem saídas este mês';
+  return `Saídas: ${remainingDates.map((date) => fmtDayOnly(date)).join(', ')}`;
 }
 
 function buildPropertyTitleNode(meta) {
@@ -210,6 +215,7 @@ function buildPropertyTitleNode(meta) {
   link.rel = 'noopener noreferrer';
   link.textContent = meta.name;
   link.title = 'Abrir mensagens Airbnb';
+  link.setAttribute('aria-label', `${meta.name}, abrir mensagens Airbnb numa nova aba`);
   return link;
 }
 
@@ -261,6 +267,7 @@ window.addEventListener('DOMContentLoaded', () => {
     activeLocation = initialLocation;
   }
   renderControls();
+  document.getElementById('loadMoreBtn')?.addEventListener('click', loadMoreMonths);
   loadAll();
   startAutoRefresh();
 
@@ -378,14 +385,16 @@ async function loadAll() {
   activeCalendars.forEach(({ idx }) => {
     calStatus[idx] = 'loading';
   });
-  document.getElementById('errorBanner').style.display = 'none';
+  document.getElementById('errorBanner').hidden = true;
   renderControls();
   const errors = [];
 
   await Promise.all(activeCalendars.map(async ({ meta, idx }) => {
     try {
       if (!meta.sources.length) {
-        throw new Error('fonte iCal em falta');
+        calData[idx] = [];
+        setCalStatus(idx, 'unavailable');
+        return;
       }
 
       const allEvents = [];
@@ -403,10 +412,10 @@ async function loadAll() {
 
   if (errors.length) {
     const banner = document.getElementById('errorBanner');
-    banner.style.display = 'block';
-    banner.textContent = 'Alguns calendários não foram carregados. Tente novamente depois de a atualização estática terminar. ' + errors.join(' | ');
+    banner.hidden = false;
+    banner.textContent = 'Não foi possível carregar alguns calendários. Atualize a página dentro de alguns minutos. ' + errors.join(' | ');
   } else {
-    document.getElementById('errorBanner').style.display = 'none';
+    document.getElementById('errorBanner').hidden = true;
   }
 
   setStatus('done');
@@ -419,7 +428,7 @@ async function loadAll() {
 }
 
 function setStatus(state) {
-  document.getElementById('loadingMsg').style.display = state === 'loading' ? 'flex' : 'none';
+  document.getElementById('loadingMsg').hidden = state !== 'loading';
 }
 
 function setCalStatus(idx, state) {
@@ -516,16 +525,13 @@ function renderTabs() {
   if (tabs.hidden) return;
 
   tabsForLocation().forEach((location) => {
-    const tab = document.createElement('button');
-    tab.type = 'button';
+    const tab = document.createElement('a');
     tab.className = `location-tab${location.id === activeLocation ? ' active' : ''}`;
-    tab.setAttribute('role', 'tab');
-    tab.setAttribute('aria-selected', String(location.id === activeLocation));
+    tab.href = locationUrl(location.id);
+    if (location.id === activeLocation) {
+      tab.setAttribute('aria-current', 'page');
+    }
     tab.textContent = location.label;
-    tab.addEventListener('click', () => {
-      if (location.id === activeLocation) return;
-      window.location.assign(locationUrl(location.id));
-    });
     tabs.appendChild(tab);
   });
 }
@@ -541,13 +547,29 @@ function renderToggles() {
     toggle.id = `toggle-${idx}`;
     toggle.className = `cal-toggle${visible[idx] ? ' active' : ''}`;
     toggle.style.setProperty('--cal-color', colorForCalendar(idx));
+    toggle.setAttribute('aria-pressed', String(visible[idx]));
+    toggle.setAttribute('aria-controls', 'calendarContainer');
     if (calStatus[idx] === 'error') toggle.classList.add('error');
-    toggle.innerHTML = `
-      <span class="toggle-dot"></span>
-      <span class="toggle-copy">
-        <span class="toggle-name">${meta.name}</span>
-      </span>
-      <span class="toggle-check">✓</span>`;
+    if (calStatus[idx] === 'unavailable') toggle.classList.add('unavailable');
+
+    const dot = document.createElement('span');
+    dot.className = 'toggle-dot';
+    dot.setAttribute('aria-hidden', 'true');
+
+    const copy = document.createElement('span');
+    copy.className = 'toggle-copy';
+
+    const name = document.createElement('span');
+    name.className = 'toggle-name';
+    name.textContent = meta.name;
+
+    const check = document.createElement('span');
+    check.className = 'toggle-check';
+    check.setAttribute('aria-hidden', 'true');
+    check.textContent = '✓';
+
+    copy.appendChild(name);
+    toggle.append(dot, copy, check);
     toggle.addEventListener('click', () => {
       visible[idx] = !visible[idx];
       renderToggles();
@@ -565,6 +587,7 @@ function renderCalendar() {
   const rangeEnd = calcRangeEnd(today, visibleMonths);
   const hardLimit = addDays(today, MAX_DAYS_AHEAD);
   const activeCalendars = visibleCalendarsForLocation();
+  const keyboardBookingKeys = new Set();
 
   hideTip(true);
   container.innerHTML = '';
@@ -574,6 +597,7 @@ function renderCalendar() {
     emptyState.className = 'empty-state';
     emptyState.textContent = `Nenhum calendário selecionado para ${activeLocationLabel()}.`;
     container.appendChild(emptyState);
+    updateViewStatus(0);
     syncLoadMoreButton(rangeEnd, hardLimit);
     return;
   }
@@ -586,10 +610,23 @@ function renderCalendar() {
   }
 
   for (const monthStart of months) {
-    container.appendChild(buildMonth(monthStart, today, rangeEnd, activeCalendars));
+    container.appendChild(buildMonth(monthStart, today, rangeEnd, activeCalendars, keyboardBookingKeys));
   }
 
+  updateViewStatus(activeCalendars.length, months.length);
   syncLoadMoreButton(rangeEnd, hardLimit);
+}
+
+function updateViewStatus(calendarCount, monthCount = 0) {
+  const status = document.getElementById('viewStatus');
+  if (!status) return;
+
+  if (!calendarCount) {
+    status.textContent = 'Nenhum calendário visível.';
+    return;
+  }
+
+  status.textContent = `${calendarCount} ${calendarCount === 1 ? 'calendário visível' : 'calendários visíveis'} em ${monthCount} ${monthCount === 1 ? 'mês' : 'meses'}.`;
 }
 
 function loadMoreMonths() {
@@ -606,16 +643,19 @@ function syncLoadMoreButton(rangeEnd, hardLimit) {
 function addDayBadge(cell, className, text) {
   const badge = document.createElement('div');
   badge.className = `ci-badge ${className}`;
+  badge.setAttribute('aria-hidden', 'true');
   badge.textContent = text;
   cell.appendChild(badge);
 }
 
-function addCheckoutMarker(cell, ev, ci) {
-  const marker = document.createElement('div');
+function addCheckoutMarker(cell, ev, ci, keyboardBookingKeys) {
+  const isKeyboardTarget = ev ? claimKeyboardBooking(ev, ci, keyboardBookingKeys) : false;
+  const marker = document.createElement(isKeyboardTarget ? 'button' : 'div');
+  if (marker instanceof HTMLButtonElement) marker.type = 'button';
   marker.className = 'booking-seg seg-end seg-checkout-marker';
   marker.style.setProperty('--bar-color', colorForCalendar(ci));
   if (ev) {
-    attachTooltipHandlers(marker, ev, ci);
+    attachTooltipHandlers(marker, ev, ci, { keyboardAccessible: isKeyboardTarget });
   }
   cell.appendChild(marker);
 }
@@ -623,44 +663,58 @@ function addCheckoutMarker(cell, ev, ci) {
 function buildOccupancyRow(year, month, activeCalendars) {
   const row = document.createElement('div');
   row.className = 'occupancy-row';
+  row.setAttribute('role', 'row');
 
   const labelCell = document.createElement('div');
   labelCell.className = 'occupancy-label-cell';
+  labelCell.setAttribute('role', 'rowheader');
   labelCell.textContent = 'OCUP.';
   row.appendChild(labelCell);
 
   activeCalendars.forEach(({ idx: ci }) => {
     const cell = document.createElement('div');
     cell.className = 'occupancy-cell';
-    const value = calStatus[ci] === 'error' ? '—' : `${occupancyForMonth(ci, year, month)}%`;
-    cell.innerHTML = `<span class="occupancy-value" style="color:${colorForCalendar(ci)}">${value}</span>`;
+    cell.setAttribute('role', 'cell');
+    const value = ['error', 'unavailable'].includes(calStatus[ci]) ? '—' : `${occupancyForMonth(ci, year, month)}%`;
+    const valueNode = document.createElement('span');
+    valueNode.className = 'occupancy-value';
+    valueNode.style.color = colorForCalendar(ci);
+    valueNode.textContent = value;
+    cell.appendChild(valueNode);
     row.appendChild(cell);
   });
 
   return row;
 }
 
-function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
+function buildMonth(monthStart, today, rangeEnd, activeCalendars, keyboardBookingKeys) {
   const year = monthStart.getFullYear();
   const month = monthStart.getMonth();
   const monthEnd = new Date(year, month + 1, 0);
 
-  const section = document.createElement('div');
+  const section = document.createElement('section');
   section.className = 'month-section';
 
   // ── Month heading ───────────────────────────────────────────────────────
   const heading = document.createElement('div');
   heading.className = 'month-heading';
 
-  const titleEl = document.createElement('div');
+  const titleEl = document.createElement('h2');
   titleEl.className = 'month-title';
+  titleEl.id = `month-${year}-${month + 1}`;
   titleEl.textContent = formatMonthTitle(year, month);
+  titleEl.setAttribute('aria-label', formatMonthAccessibleTitle(year, month));
+  section.setAttribute('aria-labelledby', titleEl.id);
   heading.appendChild(titleEl);
   section.appendChild(heading);
 
   // ── Calendar grid card ───────────────────────────────────────────────────
   const card = document.createElement('div');
   card.className = 'month-card';
+  card.tabIndex = 0;
+  card.setAttribute('role', 'table');
+  card.setAttribute('aria-labelledby', titleEl.id);
+  card.setAttribute('aria-colcount', String(activeCalendars.length + 1));
 
   // Count visible calendars for CSS Grid
   const visibleCount = activeCalendars.length;
@@ -670,13 +724,21 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
   // Calendar Header Row (Top of columns)
   const headerRow = document.createElement('div');
   headerRow.className = 'dow-header';
-  headerRow.innerHTML = `<div class="cal-header-cell is-date">DATA</div>`;
+  headerRow.setAttribute('role', 'row');
+  const dateHeader = document.createElement('div');
+  dateHeader.className = 'cal-header-cell is-date';
+  dateHeader.setAttribute('role', 'columnheader');
+  dateHeader.textContent = 'DATA';
+  headerRow.appendChild(dateHeader);
   activeCalendars.forEach(({ meta, idx: ci }) => {
     const th = document.createElement('div');
-    th.className = `cal-header-cell is-calendar${calStatus[ci] === 'error' ? ' error' : ''}`;
+    const isUnavailable = ['error', 'unavailable'].includes(calStatus[ci]);
+    th.className = `cal-header-cell is-calendar${isUnavailable ? ' error' : ''}`;
+    th.setAttribute('role', 'columnheader');
     const dot = document.createElement('span');
     dot.className = 'label-dot';
     dot.style.background = colorForCalendar(ci);
+    dot.setAttribute('aria-hidden', 'true');
 
     const copy = document.createElement('span');
     copy.className = 'cal-header-copy';
@@ -711,15 +773,22 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
     // Create grid row for this day
     const row = document.createElement('div');
     row.className = 'booking-row';
+    row.setAttribute('role', 'row');
 
     // Day Label Cell (Leftmost column)
     const dateCell = document.createElement('div');
     dateCell.className = 'date-cell' + (sameDay(currentDay, today) ? ' is-today' : '');
+    dateCell.setAttribute('role', 'rowheader');
     const dowStr = WEEKDAYS_SHORT[(currentDay.getDay() + 6) % 7];
-    dateCell.innerHTML = `
-      ${currentDay.getDate()}
-      <span class="dow-label">${dowStr}</span>
-    `;
+    const dateNode = document.createElement('time');
+    dateNode.dateTime = `${year}-${String(month + 1).padStart(2, '0')}-${String(currentDay.getDate()).padStart(2, '0')}`;
+    dateNode.setAttribute('aria-label', fmtFull(currentDay));
+    dateNode.textContent = String(currentDay.getDate());
+    const weekdayNode = document.createElement('span');
+    weekdayNode.className = 'dow-label';
+    weekdayNode.setAttribute('aria-hidden', 'true');
+    weekdayNode.textContent = dowStr;
+    dateCell.append(dateNode, weekdayNode);
     row.appendChild(dateCell);
 
     // Build booking cells for each visible calendar (Columns)
@@ -727,6 +796,7 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
 
       const cell = document.createElement('div');
       cell.className = 'booking-cell';
+      cell.setAttribute('role', 'cell');
       let hasCheckIn = false;
       let hasCheckOut = false;
       let firstCheckOut = null;
@@ -751,7 +821,9 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
         if (isSingleNight) segType = 'only';
         else if (startsHere) segType = 'start';
 
-        const seg = document.createElement('div');
+        const isKeyboardTarget = claimKeyboardBooking(ev, ci, keyboardBookingKeys);
+        const seg = document.createElement(isKeyboardTarget ? 'button' : 'div');
+        if (seg instanceof HTMLButtonElement) seg.type = 'button';
         seg.className = `booking-seg seg-${segType}`;
         seg.style.setProperty('--bar-color', colorForCalendar(ci));
 
@@ -763,11 +835,11 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars) {
           seg.appendChild(lbl);
         }
 
-        attachTooltipHandlers(seg, ev, ci);
+        attachTooltipHandlers(seg, ev, ci, { keyboardAccessible: isKeyboardTarget });
         cell.appendChild(seg);
       }
 
-      if (hasCheckOut) addCheckoutMarker(cell, firstCheckOut, ci);
+      if (hasCheckOut) addCheckoutMarker(cell, firstCheckOut, ci, keyboardBookingKeys);
       if (hasCheckIn) addDayBadge(cell, 'ci-in', '↓');
       if (hasCheckOut) addDayBadge(cell, 'ci-out', '↑');
 
@@ -794,13 +866,33 @@ function tooltipKey(ev, ci) {
   return `${ci}:${ev.start.getTime()}:${ev.end.getTime()}:${ev.summary || ''}`;
 }
 
+function claimKeyboardBooking(ev, ci, keyboardBookingKeys) {
+  const key = tooltipKey(ev, ci);
+  if (keyboardBookingKeys.has(key)) return false;
+  keyboardBookingKeys.add(key);
+  return true;
+}
+
 function setTooltipContent(ev, ci) {
   const nights = bookingNights(ev);
-  tooltip.innerHTML = `
-    <strong>${bookingTitle(ev)}</strong>
-    <div class="tip-row tip-in">↓ Entrada &ensp;${fmtFull(ev.start)}</div>
-    <div class="tip-row tip-out">↑ Saída &ensp;${fmtFull(ev.end)}</div>
-    <div class="tip-nights">${nightsLabel(nights)}</div>`;
+  tooltip.replaceChildren();
+
+  const title = document.createElement('strong');
+  title.textContent = bookingTitle(ev);
+
+  const checkIn = document.createElement('div');
+  checkIn.className = 'tip-row tip-in';
+  checkIn.textContent = `↓ Entrada  ${fmtFull(ev.start)}`;
+
+  const checkOut = document.createElement('div');
+  checkOut.className = 'tip-row tip-out';
+  checkOut.textContent = `↑ Saída  ${fmtFull(ev.end)}`;
+
+  const nightsNode = document.createElement('div');
+  nightsNode.className = 'tip-nights';
+  nightsNode.textContent = nightsLabel(nights);
+
+  tooltip.append(title, checkIn, checkOut, nightsNode);
   tooltip.style.borderColor = colorForCalendar(ci);
 }
 
@@ -818,6 +910,7 @@ function positionTooltip(clientX, clientY) {
 function showTipAt(clientX, clientY, ev, ci, { pinned = false, key = tooltipKey(ev, ci) } = {}) {
   setTooltipContent(ev, ci);
   tooltip.style.display = 'block';
+  tooltip.setAttribute('aria-hidden', 'false');
   tooltip.dataset.pinned = pinned ? 'true' : 'false';
   tooltip.dataset.bookingKey = key;
   positionTooltip(clientX, clientY);
@@ -841,6 +934,7 @@ function hideTip(force = false) {
   }
 
   tooltip.style.display = 'none';
+  tooltip.setAttribute('aria-hidden', 'true');
   tooltip.dataset.pinned = 'false';
   tooltip.dataset.bookingKey = '';
 }
@@ -858,30 +952,37 @@ function showPinnedTipForTarget(target, ev, ci) {
   showTipAt(rect.left + (rect.width / 2), rect.bottom, ev, ci, { pinned: true, key });
 }
 
-function attachTooltipHandlers(target, ev, ci) {
-  target.tabIndex = 0;
-  target.setAttribute('role', 'button');
-  target.setAttribute('aria-label', `${bookingTitle(ev)}, entrada ${fmtFull(ev.start)}, saída ${fmtFull(ev.end)}, ${nightsLabel(bookingNights(ev))}`);
+function showTipForTarget(target, ev, ci, { pinned = false } = {}) {
+  const rect = target.getBoundingClientRect();
+  showTipAt(rect.left + (rect.width / 2), rect.bottom, ev, ci, { pinned });
+}
+
+function attachTooltipHandlers(target, ev, ci, { keyboardAccessible = false } = {}) {
+  if (keyboardAccessible) {
+    const propertyName = CALENDARS_META[ci]?.name || 'Calendário';
+    target.setAttribute('aria-label', `${propertyName}: ${bookingTitle(ev)}. Entrada ${fmtFull(ev.start)}, saída ${fmtFull(ev.end)}, ${nightsLabel(bookingNights(ev))}.`);
+    target.addEventListener('focus', () => {
+      window.requestAnimationFrame(() => {
+        if (document.activeElement === target && tooltip.dataset.pinned !== 'true') {
+          showTipForTarget(target, ev, ci);
+        }
+      });
+    });
+    target.addEventListener('blur', () => hideTip(true));
+    target.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      hideTip(true);
+      target.blur();
+    });
+  } else {
+    target.setAttribute('aria-hidden', 'true');
+  }
+
   target.addEventListener('mouseenter', (event) => showTip(event, ev, ci));
   target.addEventListener('mousemove', moveTip);
   target.addEventListener('mouseleave', () => hideTip());
-  target.addEventListener('blur', () => hideTip(true));
   target.addEventListener('click', (event) => {
     event.stopPropagation();
     showPinnedTipForTarget(target, ev, ci);
   });
-  target.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      showPinnedTipForTarget(target, ev, ci);
-      return;
-    }
-
-    if (event.key === 'Escape') {
-      hideTip(true);
-      target.blur();
-    }
-  });
 }
-
-window.loadMoreMonths = loadMoreMonths;

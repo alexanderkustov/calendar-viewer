@@ -3,34 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F9F9F9">
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, max-image-preview:none, max-snippet:0, max-video-preview:0">
 <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, max-image-preview:none, max-snippet:0, max-video-preview:0">
 <title>Calendário Mama 3</title>
 <link rel="icon" type="image/png" href="../../favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&amp;family=Jost:wght@300;400;500&amp;display=swap">
 <link rel="stylesheet" href="../../style.css">
 </head>
 <body>
 
-<div class="topbar">
+<a class="skip-link" href="#mainContent">Saltar para o conteúdo principal</a>
+
+<header class="topbar">
   <div class="topbar-inner">
     <div class="status-bar" id="statusBar">
-      <div class="location-tabs" id="locationTabs" role="tablist" aria-label="Calendário Mama"></div>
-      <div class="toggle-group" id="toggleGroup"></div>
-      <div class="last-updated" id="lastUpdated" aria-live="polite">Última atualização: —</div>
+      <nav class="location-tabs" id="locationTabs" aria-label="Calendário Mama"></nav>
+      <div class="toggle-group" id="toggleGroup" role="group" aria-label="Propriedades visíveis"></div>
+      <p class="last-updated" id="lastUpdated" aria-live="polite">Última atualização: —</p>
     </div>
   </div>
-</div>
+</header>
 
-<div class="main">
-  <div id="loadingMsg" style="display:none; justify-content:center; align-items:center; font-size:1.2em; color:#2e6da4; margin-bottom:10px;">A carregar calendários...</div>
-  <div class="error-banner" id="errorBanner"></div>
+<main class="main" id="mainContent" tabindex="-1">
+  <h1 class="sr-only">Calendário de estadias — Mama 3</h1>
+  <div class="loading-msg" id="loadingMsg" role="status" aria-live="polite" hidden><span class="spinner" aria-hidden="true"></span><span>A carregar calendários…</span></div>
+  <div class="error-banner" id="errorBanner" role="alert" hidden></div>
+  <p class="sr-only" id="viewStatus" aria-live="polite"></p>
   <div id="calendarContainer"></div>
   <div class="calendar-actions">
-    <button class="load-more-btn" id="loadMoreBtn" type="button" onclick="loadMoreMonths()">Carregar mais meses</button>
+    <button class="load-more-btn" id="loadMoreBtn" type="button">Carregar mais meses</button>
   </div>
-</div>
+</main>
 
-<div class="tooltip" id="tooltip"></div>
+<div class="tooltip" id="tooltip" role="tooltip" aria-hidden="true"></div>
 
 <script>
 window.__CALENDAR_VIEWER_LOCATION__ = 'mama-3';
