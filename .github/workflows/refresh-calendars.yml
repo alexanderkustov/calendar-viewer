@@ -62,6 +62,7 @@ jobs:
           cp -R data _site/
           cp -R albufeira _site/
           cp -R portimao _site/
+          cp -R aljezur _site/
           cp -R mama _site/
 
       - name: Upload Pages artifact
