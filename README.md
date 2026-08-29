@@ -40,6 +40,7 @@ Then open:
 - `http://localhost:3000/mama/1/`
 - `http://localhost:3000/mama/2/`
 - `http://localhost:3000/aljezur/`
+- `http://localhost:3000/today/`
 
 ## Configuration
 

@@ -15,6 +15,8 @@ const LOCATION_ROUTES = new Set([
   "/mama/1",
   "/mama/2",
 ]);
+const TODAY_ROUTE = "/today";
+const PAGE_ROUTES = new Set([...LOCATION_ROUTES, TODAY_ROUTE]);
 const LOCATION_REDIRECTS = new Map([
   ["/mama", "/mama/1/"],
   ["/mama/index.html", "/mama/1/"],
@@ -22,7 +24,7 @@ const LOCATION_REDIRECTS = new Map([
   ["/mama/3/index.html", "/aljezur/"],
 ]);
 const LOCATION_ROUTE_FILES = new Map();
-for (const routePath of LOCATION_ROUTES) {
+for (const routePath of PAGE_ROUTES) {
   const filePath = `${routePath.slice(1)}/index.html`;
   LOCATION_ROUTE_FILES.set(routePath, filePath);
   LOCATION_ROUTE_FILES.set(`${routePath}/index.html`, filePath);
@@ -87,7 +89,7 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  if (LOCATION_ROUTES.has(pathname) && rawPathname !== `${pathname}/`) {
+  if (PAGE_ROUTES.has(pathname) && rawPathname !== `${pathname}/`) {
     res.writeHead(301, { Location: `${pathname}/` });
     res.end();
     return;
@@ -107,6 +109,7 @@ const server = http.createServer((req, res) => {
     "/favicon.png": "favicon.png",
     "/style.css": "style.css",
     "/main.js": "main.js",
+    "/today.js": "today.js",
     "/robots.txt": "robots.txt",
     "/.nojekyll": ".nojekyll",
   };

@@ -254,6 +254,51 @@ body {
   box-shadow: none;
 }
 
+/* Keep today's departures readable at a glance. */
+.today-main {
+  max-width: 720px;
+  padding-top: 4rem;
+}
+
+.today-heading {
+  margin-bottom: 2rem;
+}
+
+.today-title {
+  color: #333;
+  font-size: clamp(2.4rem, 8vw, 4.8rem);
+  letter-spacing: 0.08em;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.today-date,
+.today-count {
+  color: var(--muted);
+  font-family: 'Jost', sans-serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  margin-top: 0.75rem;
+  text-transform: uppercase;
+}
+
+.today-list {
+  border-block: 1px solid var(--border-strong);
+  list-style: none;
+}
+
+.today-item {
+  border-bottom: 1px solid var(--border);
+  font-size: clamp(1.6rem, 5vw, 2.4rem);
+  letter-spacing: 0.05em;
+  padding: 1.1rem 0;
+  text-transform: uppercase;
+}
+
+.today-item:last-child {
+  border-bottom: 0;
+}
+
 .calendar-actions {
   margin-top: 1.2rem;
   display: flex;
