@@ -5,6 +5,7 @@ const INITIAL_VISIBLE_MONTHS = 2;
 const LOAD_MORE_MONTHS = 1;
 const SNAPSHOT_STALE_AFTER_MS = 75 * 60 * 1000;
 const AUTO_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
+const COPY_FEEDBACK_MS = 1800;
 const STATIC_DATA_DIR = 'data';
 const APP_ROOT = document.documentElement.dataset.appRoot || '.';
 const APP_ROOT_URL = new URL(APP_ROOT.endsWith('/') ? APP_ROOT : `${APP_ROOT}/`, window.location.href);
@@ -198,6 +199,67 @@ function remainingCheckoutLabelForMonth(idx, year, month) {
   const remainingDates = remainingCheckoutDatesForMonth(idx, year, month);
   if (!remainingDates.length) return 'Sem saídas este mês';
   return `Saídas: ${remainingDates.map((date) => fmtDayOnly(date)).join(', ')}`;
+}
+
+function checkoutCopyText(year, month, activeCalendars) {
+  const monthLabel = formatMonthAccessibleTitle(year, month);
+  const propertyLines = activeCalendars.map(({ meta, idx }) =>
+    `${meta.name} — ${remainingCheckoutLabelForMonth(idx, year, month)}`
+  );
+
+  return [`Saídas — ${monthLabel}`, ...propertyLines].join('\n');
+}
+
+function fallbackCopyText(text) {
+  const textarea = document.createElement('textarea');
+  textarea.className = 'sr-only';
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  const copied = document.execCommand('copy');
+  textarea.remove();
+
+  if (!copied) {
+    throw new Error('Copy command failed');
+  }
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch {
+      // Older browsers may expose Clipboard API without granting access.
+    }
+  }
+
+  fallbackCopyText(text);
+}
+
+async function copyCheckoutRow(button, year, month, activeCalendars) {
+  const label = formatMonthAccessibleTitle(year, month);
+
+  try {
+    await copyText(checkoutCopyText(year, month, activeCalendars));
+    button.textContent = 'COPIADO';
+    button.classList.add('is-copied');
+    button.setAttribute('aria-label', `Saídas de ${label} copiadas`);
+    document.getElementById('viewStatus').textContent = `Saídas de ${label} copiadas.`;
+  } catch {
+    button.textContent = 'ERRO';
+    button.classList.add('is-error');
+    button.setAttribute('aria-label', `Não foi possível copiar as saídas de ${label}`);
+    document.getElementById('viewStatus').textContent = 'Não foi possível copiar as saídas.';
+  }
+
+  window.setTimeout(() => {
+    button.textContent = 'DATA';
+    button.classList.remove('is-copied', 'is-error');
+    button.setAttribute('aria-label', `Copiar todas as saídas de ${label}`);
+  }, COPY_FEEDBACK_MS);
 }
 
 function buildPropertyTitleNode(meta) {
@@ -728,7 +790,16 @@ function buildMonth(monthStart, today, rangeEnd, activeCalendars, keyboardBookin
   const dateHeader = document.createElement('div');
   dateHeader.className = 'cal-header-cell is-date';
   dateHeader.setAttribute('role', 'columnheader');
-  dateHeader.textContent = 'DATA';
+  const copyButton = document.createElement('button');
+  copyButton.className = 'copy-checkouts-btn';
+  copyButton.type = 'button';
+  copyButton.textContent = 'DATA';
+  copyButton.title = 'Copiar todas as saídas deste mês';
+  copyButton.setAttribute('aria-label', `Copiar todas as saídas de ${formatMonthAccessibleTitle(year, month)}`);
+  copyButton.addEventListener('click', () => {
+    copyCheckoutRow(copyButton, year, month, activeCalendars);
+  });
+  dateHeader.appendChild(copyButton);
   headerRow.appendChild(dateHeader);
   activeCalendars.forEach(({ meta, idx: ci }) => {
     const th = document.createElement('div');

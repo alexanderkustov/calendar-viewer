@@ -449,6 +449,37 @@ body {
   box-shadow: 1px 0 0 var(--border);
 }
 
+.copy-checkouts-btn {
+  width: 100%;
+  min-height: var(--touch-target);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  touch-action: manipulation;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.copy-checkouts-btn:hover {
+  border-color: var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.copy-checkouts-btn.is-copied {
+  border-color: var(--checkin-color);
+  color: var(--checkin-color);
+}
+
+.copy-checkouts-btn.is-error {
+  border-color: var(--checkout-color);
+  color: var(--checkout-color);
+}
+
 .cal-header-cell.is-calendar {
   text-align: left;
 }
@@ -936,6 +967,7 @@ body {
 .load-more-btn:focus-visible,
 .cal-toggle:focus-visible,
 .booking-seg:focus-visible,
+.copy-checkouts-btn:focus-visible,
 .cal-header-name-link:focus-visible {
   outline: 2px solid var(--text);
   outline-offset: 2px;
