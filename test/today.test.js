@@ -4,7 +4,13 @@ const path = require('node:path');
 const test = require('node:test');
 
 const PROJECT_DIR = path.join(__dirname, '..');
-const { canonicalName, dateKey, hasCheckout } = require('../today.js');
+const {
+  activitiesForDate,
+  canonicalName,
+  dateKey,
+  hasCheckout,
+  nextDateKey
+} = require('../today.js');
 
 function requestRoute(url) {
   const { server } = require('../server.js');
@@ -42,13 +48,14 @@ test('today route is served locally', () => {
   const response = requestRoute('/today/');
 
   assert.equal(response.statusCode, 200);
-  assert.match(response.body, /Saídas de hoje/);
+  assert.doesNotMatch(response.body, /<h1[^>]*>Entradas e saídas<\/h1>/);
 });
 
-test('today page loads the exit list', async () => {
+test('today page loads both day lists', async () => {
   const html = await fs.readFile(path.join(PROJECT_DIR, 'today/index.html'), 'utf8');
 
   assert.match(html, /id="todayList"/);
+  assert.match(html, /id="tomorrowList"/);
   assert.match(html, /\.\.\/today\.js/);
 });
 
@@ -73,4 +80,24 @@ test('today filter uses Lisbon time', () => {
 
 test('today list merges booking feeds', () => {
   assert.equal(canonicalName('Antero A7 booking'), 'Antero A7');
+});
+
+test('today route marks entries and exits', () => {
+  const targetDate = '2026-08-30';
+  const events = [
+    {
+      start: { type: 'date', value: targetDate },
+      end: { type: 'date', value: '2026-09-02' }
+    },
+    {
+      start: { type: 'date', value: '2026-08-27' },
+      end: { type: 'date', value: targetDate }
+    }
+  ];
+
+  assert.deepEqual(activitiesForDate(events, targetDate), ['Entrada', 'Saída']);
+});
+
+test('today route includes tomorrow across month boundaries', () => {
+  assert.equal(nextDateKey('2026-08-31'), '2026-09-01');
 });

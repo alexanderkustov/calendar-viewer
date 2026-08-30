@@ -3,6 +3,9 @@ const DATE_KEY_LOCALE = 'en-CA';
 const DISPLAY_LOCALE = 'pt-PT';
 const STATIC_DATA_DIR = 'data';
 const BOOKING_SUFFIX = /\s+booking$/i;
+const ENTRY_LABEL = 'Entrada';
+const EXIT_LABEL = 'Saída';
+const TOMORROW_DAY_OFFSET = 1;
 const DATE_KEY_FORMATTER = new Intl.DateTimeFormat(DATE_KEY_LOCALE, {
   day: '2-digit',
   month: '2-digit',
@@ -28,20 +31,33 @@ function dateLabel(date = new Date()) {
   return DATE_LABEL_FORMATTER.format(date);
 }
 
+function dateFromKey(targetDateKey) {
+  const [year, month, day] = targetDateKey.split('-').map(Number);
+
+  return new Date(Date.UTC(year, month - 1, day));
+}
+
+function nextDateKey(targetDateKey) {
+  const date = dateFromKey(targetDateKey);
+  date.setUTCDate(date.getUTCDate() + TOMORROW_DAY_OFFSET);
+
+  return date.toISOString().slice(0, targetDateKey.length);
+}
+
 function canonicalName(name) {
   return String(name || '').replace(BOOKING_SUFFIX, '').trim();
 }
 
-function endDateKey(rawEnd) {
-  if (!rawEnd || typeof rawEnd.value !== 'string') {
+function eventDateKey(rawDate) {
+  if (!rawDate || typeof rawDate.value !== 'string') {
     return null;
   }
 
-  if (rawEnd.type === 'date') {
-    return rawEnd.value;
+  if (rawDate.type === 'date') {
+    return rawDate.value;
   }
 
-  const parsed = new Date(rawEnd.value);
+  const parsed = new Date(rawDate.value);
   if (Number.isNaN(parsed.getTime())) {
     return null;
   }
@@ -54,7 +70,26 @@ function hasCheckout(events, targetDateKey) {
     return false;
   }
 
-  return events.some((event) => endDateKey(event?.end) === targetDateKey);
+  return events.some((event) => eventDateKey(event?.end) === targetDateKey);
+}
+
+function activitiesForDate(events, targetDateKey) {
+  if (!Array.isArray(events)) {
+    return [];
+  }
+
+  const activities = new Set();
+  for (const event of events) {
+    if (eventDateKey(event?.start) === targetDateKey) {
+      activities.add(ENTRY_LABEL);
+    }
+
+    if (eventDateKey(event?.end) === targetDateKey) {
+      activities.add(EXIT_LABEL);
+    }
+  }
+
+  return [ENTRY_LABEL, EXIT_LABEL].filter((label) => activities.has(label));
 }
 
 function assetUrl(relativePath) {
@@ -74,22 +109,74 @@ async function fetchJson(relativePath, cacheKey) {
   return response.json();
 }
 
-function renderExits(names) {
-  const list = document.getElementById('todayList');
-  const emptyState = document.getElementById('emptyState');
-  const count = document.getElementById('todayCount');
+function countLabel(stays) {
+  const labels = stays.flatMap((stay) => stay.activities);
+  const entries = labels.filter((label) => label === ENTRY_LABEL).length;
+  const exits = labels.filter((label) => label === EXIT_LABEL).length;
+  const parts = [];
+
+  if (entries > 0) {
+    parts.push(`${entries} ${entries === 1 ? 'entrada' : 'entradas'}`);
+  }
+
+  if (exits > 0) {
+    parts.push(`${exits} ${exits === 1 ? 'saída' : 'saídas'}`);
+  }
+
+  return parts.join(' · ');
+}
+
+function renderDay(prefix, stays) {
+  const list = document.getElementById(`${prefix}List`);
+  const emptyState = document.getElementById(`${prefix}EmptyState`);
+  const count = document.getElementById(`${prefix}Count`);
 
   list.innerHTML = '';
-  for (const name of names) {
+  for (const stay of stays) {
     const item = document.createElement('li');
     item.className = 'today-item';
-    item.textContent = name;
+
+    const name = document.createElement('span');
+    name.className = 'today-item-name';
+    name.textContent = stay.name;
+    item.appendChild(name);
+
+    const activities = document.createElement('span');
+    activities.className = 'today-item-activities';
+    activities.textContent = stay.activities.join(' · ');
+    item.appendChild(activities);
+
     list.appendChild(item);
   }
 
-  list.hidden = names.length === 0;
-  emptyState.hidden = names.length > 0;
-  count.textContent = `${names.length} ${names.length === 1 ? 'saída' : 'saídas'}`;
+  list.hidden = stays.length === 0;
+  emptyState.hidden = stays.length > 0;
+  count.textContent = countLabel(stays);
+}
+
+function mergeResults(results) {
+  const stays = new Map();
+
+  // Multiple booking feeds for one property produce one combined entry.
+  for (const result of results) {
+    if (result.error) {
+      continue;
+    }
+
+    if (!stays.has(result.name)) {
+      stays.set(result.name, {
+        name: result.name,
+        today: new Set(),
+        tomorrow: new Set()
+      });
+    }
+
+    const stay = stays.get(result.name);
+    result.today.forEach((label) => stay.today.add(label));
+    result.tomorrow.forEach((label) => stay.tomorrow.add(label));
+  }
+
+  return [...stays.values()];
 }
 
 function showErrors(errorCount) {
@@ -101,9 +188,9 @@ function showErrors(errorCount) {
   }
 }
 
-async function loadToday() {
+async function loadToday(todayDateKey = dateKey()) {
   const cacheKey = Date.now();
-  const targetDateKey = dateKey();
+  const tomorrowDateKey = nextDateKey(todayDateKey);
   const calendars = await fetchJson(`${STATIC_DATA_DIR}/calendars.json`, cacheKey);
   const results = await Promise.all(calendars.map(async (calendar) => {
     try {
@@ -111,42 +198,46 @@ async function loadToday() {
 
       return {
         error: false,
-        exitsToday: hasCheckout(events, targetDateKey),
-        name: canonicalName(calendar.name)
+        name: canonicalName(calendar.name),
+        today: activitiesForDate(events, todayDateKey),
+        tomorrow: activitiesForDate(events, tomorrowDateKey)
       };
     } catch {
-      return { error: true, exitsToday: false, name: '' };
+      return { error: true, name: '', today: [], tomorrow: [] };
     }
   }));
 
-  // Multiple booking feeds for one property produce one list entry.
-  const names = [];
-  const seen = new Set();
-  for (const result of results) {
-    if (result.error || !result.exitsToday || seen.has(result.name)) {
-      continue;
-    }
+  const stays = mergeResults(results);
+  const today = stays
+    .filter((stay) => stay.today.size > 0)
+    .map((stay) => ({ name: stay.name, activities: [...stay.today] }));
+  const tomorrow = stays
+    .filter((stay) => stay.tomorrow.size > 0)
+    .map((stay) => ({ name: stay.name, activities: [...stay.tomorrow] }));
 
-    seen.add(result.name);
-    names.push(result.name);
-  }
-
-  renderExits(names);
+  renderDay('today', today);
+  renderDay('tomorrow', tomorrow);
   showErrors(results.filter((result) => result.error).length);
 }
 
 async function initToday() {
-  document.getElementById('todayDate').textContent = dateLabel();
+  const todayDateKey = dateKey();
+  const tomorrowDateKey = nextDateKey(todayDateKey);
+  document.getElementById('todayDate').textContent = dateLabel(dateFromKey(todayDateKey));
+  document.getElementById('tomorrowDate').textContent = dateLabel(dateFromKey(tomorrowDateKey));
 
   try {
-    await loadToday();
+    await loadToday(todayDateKey);
   } catch {
     const banner = document.getElementById('errorBanner');
     banner.hidden = false;
-    banner.textContent = 'Não foi possível carregar as saídas.';
+    banner.textContent = 'Não foi possível carregar as entradas e saídas.';
     document.getElementById('todayList').hidden = true;
-    document.getElementById('emptyState').hidden = true;
+    document.getElementById('tomorrowList').hidden = true;
+    document.getElementById('todayEmptyState').hidden = true;
+    document.getElementById('tomorrowEmptyState').hidden = true;
     document.getElementById('todayCount').textContent = '';
+    document.getElementById('tomorrowCount').textContent = '';
   } finally {
     document.getElementById('loadingMsg').hidden = true;
   }
@@ -157,5 +248,11 @@ if (typeof window !== 'undefined') {
 }
 
 if (typeof module !== 'undefined') {
-  module.exports = { canonicalName, dateKey, hasCheckout };
+  module.exports = {
+    activitiesForDate,
+    canonicalName,
+    dateKey,
+    hasCheckout,
+    nextDateKey
+  };
 }

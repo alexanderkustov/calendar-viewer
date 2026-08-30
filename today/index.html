@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#F9F9F9">
 <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, max-image-preview:none, max-snippet:0, max-video-preview:0">
 <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate, max-image-preview:none, max-snippet:0, max-video-preview:0">
-<title>Saídas de hoje</title>
+<title>Entradas e saídas</title>
 <link rel="icon" type="image/png" href="../favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,19 +18,33 @@
 <a class="skip-link" href="#mainContent">Saltar para o conteúdo principal</a>
 
 <main class="main today-main" id="mainContent" tabindex="-1">
-  <header class="today-heading">
-    <h1 class="today-title">Saídas de hoje</h1>
-    <p class="today-date" id="todayDate"></p>
-    <p class="today-count" id="todayCount" aria-live="polite"></p>
-  </header>
-
   <div class="loading-msg" id="loadingMsg" role="status" aria-live="polite">
     <span class="spinner" aria-hidden="true"></span>
-    <span>A carregar saídas…</span>
+    <span>A carregar movimentos…</span>
   </div>
   <div class="error-banner" id="errorBanner" role="alert" hidden></div>
-  <ol class="today-list" id="todayList" hidden></ol>
-  <p class="empty-state" id="emptyState" hidden>Sem saídas hoje.</p>
+
+  <div class="today-days">
+    <section class="today-day" aria-labelledby="todayDayTitle">
+      <header class="today-day-heading">
+        <h2 class="today-day-title" id="todayDayTitle">Hoje</h2>
+        <p class="today-date" id="todayDate"></p>
+        <p class="today-count" id="todayCount" aria-live="polite"></p>
+      </header>
+      <ol class="today-list" id="todayList" hidden></ol>
+      <p class="empty-state" id="todayEmptyState" hidden>Sem entradas ou saídas hoje.</p>
+    </section>
+
+    <section class="today-day" aria-labelledby="tomorrowDayTitle">
+      <header class="today-day-heading">
+        <h2 class="today-day-title" id="tomorrowDayTitle">Amanhã</h2>
+        <p class="today-date" id="tomorrowDate"></p>
+        <p class="today-count" id="tomorrowCount" aria-live="polite"></p>
+      </header>
+      <ol class="today-list" id="tomorrowList" hidden></ol>
+      <p class="empty-state" id="tomorrowEmptyState" hidden>Sem entradas ou saídas amanhã.</p>
+    </section>
+  </div>
 </main>
 
 <script src="../today.js"></script>
