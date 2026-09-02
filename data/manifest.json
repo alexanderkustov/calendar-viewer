@@ -1,12 +1,6 @@
 {
-  "generatedAt": "2026-09-02T21:05:33.467Z",
+  "generatedAt": "2026-09-02T23:21:04.182Z",
   "calendarCount": 18,
-  "staleCalendarCount": 1,
-  "staleCalendars": [
-    {
-      "id": 10,
-      "name": "Onda Verde",
-      "reason": "Not a valid iCal response"
-    }
-  ]
+  "staleCalendarCount": 0,
+  "staleCalendars": []
 }
