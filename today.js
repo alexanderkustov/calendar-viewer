@@ -6,6 +6,9 @@ const BOOKING_SUFFIX = /\s+booking$/i;
 const ENTRY_LABEL = 'Entrada';
 const EXIT_LABEL = 'Saída';
 const TOMORROW_DAY_OFFSET = 1;
+const CONFIG_MESSAGES_PATH = 'airbnb-messages.json';
+const LINK_TARGET_BLANK = '_blank';
+const LINK_REL_EXTERNAL = 'noopener noreferrer';
 const DATE_KEY_FORMATTER = new Intl.DateTimeFormat(DATE_KEY_LOCALE, {
   day: '2-digit',
   month: '2-digit',
@@ -46,6 +49,14 @@ function nextDateKey(targetDateKey) {
 
 function canonicalName(name) {
   return String(name || '').replace(BOOKING_SUFFIX, '').trim();
+}
+
+// Resolve Airbnb message URL for a property name.
+// Example: messageUrlFor('Pardais 205', map) => 'https://airbnb.com/...'
+function messageUrlFor(name, messageMap = {}) {
+  const clean = canonicalName(name);
+
+  return messageMap[clean] || messageMap[name] || '';
 }
 
 function eventDateKey(rawDate) {
@@ -109,6 +120,15 @@ async function fetchJson(relativePath, cacheKey) {
   return response.json();
 }
 
+// Fetch Airbnb messages configuration.
+async function fetchMessages(cacheKey) {
+  try {
+    return await fetchJson(CONFIG_MESSAGES_PATH, cacheKey);
+  } catch {
+    return {};
+  }
+}
+
 function countLabel(stays) {
   const labels = stays.flatMap((stay) => stay.activities);
   const entries = labels.filter((label) => label === ENTRY_LABEL).length;
@@ -126,6 +146,28 @@ function countLabel(stays) {
   return parts.join(' · ');
 }
 
+// Render title as link if messageUrl exists, otherwise plain text.
+function renderTitle(stay) {
+  if (!stay?.messageUrl) {
+    const title = document.createElement('span');
+    title.className = 'today-item-name';
+    title.textContent = stay?.name || '';
+
+    return title;
+  }
+
+  const link = document.createElement('a');
+  link.className = 'today-item-name today-item-name-link';
+  link.href = stay.messageUrl;
+  link.target = LINK_TARGET_BLANK;
+  link.rel = LINK_REL_EXTERNAL;
+  link.textContent = stay.name;
+  link.title = 'Abrir mensagens Airbnb';
+  link.setAttribute('aria-label', `${stay.name}, abrir mensagens Airbnb numa nova aba`);
+
+  return link;
+}
+
 function renderDay(prefix, stays) {
   const list = document.getElementById(`${prefix}List`);
   const emptyState = document.getElementById(`${prefix}EmptyState`);
@@ -136,9 +178,7 @@ function renderDay(prefix, stays) {
     const item = document.createElement('li');
     item.className = 'today-item';
 
-    const name = document.createElement('span');
-    name.className = 'today-item-name';
-    name.textContent = stay.name;
+    const name = renderTitle(stay);
     item.appendChild(name);
 
     const activities = document.createElement('span');
@@ -191,7 +231,10 @@ function showErrors(errorCount) {
 async function loadToday(todayDateKey = dateKey()) {
   const cacheKey = Date.now();
   const tomorrowDateKey = nextDateKey(todayDateKey);
-  const calendars = await fetchJson(`${STATIC_DATA_DIR}/calendars.json`, cacheKey);
+  const [calendars, messageMap] = await Promise.all([
+    fetchJson(`${STATIC_DATA_DIR}/calendars.json`, cacheKey),
+    fetchMessages(cacheKey)
+  ]);
   const results = await Promise.all(calendars.map(async (calendar) => {
     try {
       const events = await fetchJson(`${STATIC_DATA_DIR}/${calendar.sourcePath}`, cacheKey);
@@ -210,10 +253,18 @@ async function loadToday(todayDateKey = dateKey()) {
   const stays = mergeResults(results);
   const today = stays
     .filter((stay) => stay.today.size > 0)
-    .map((stay) => ({ name: stay.name, activities: [...stay.today] }));
+    .map((stay) => ({
+      activities: [...stay.today],
+      messageUrl: messageUrlFor(stay.name, messageMap),
+      name: stay.name
+    }));
   const tomorrow = stays
     .filter((stay) => stay.tomorrow.size > 0)
-    .map((stay) => ({ name: stay.name, activities: [...stay.tomorrow] }));
+    .map((stay) => ({
+      activities: [...stay.tomorrow],
+      messageUrl: messageUrlFor(stay.name, messageMap),
+      name: stay.name
+    }));
 
   renderDay('today', today);
   renderDay('tomorrow', tomorrow);
@@ -253,6 +304,8 @@ if (typeof module !== 'undefined') {
     canonicalName,
     dateKey,
     hasCheckout,
-    nextDateKey
+    messageUrlFor,
+    nextDateKey,
+    renderTitle
   };
 }

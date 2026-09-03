@@ -31,6 +31,7 @@ jobs:
           cp style.css _site/
           cp main.js _site/
           cp today.js _site/
+          cp airbnb-messages.json _site/
           cp robots.txt _site/
           cp .nojekyll _site/
           cp -R data _site/

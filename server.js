@@ -110,6 +110,7 @@ const server = http.createServer((req, res) => {
     "/style.css": "style.css",
     "/main.js": "main.js",
     "/today.js": "today.js",
+    "/airbnb-messages.json": "airbnb-messages.json",
     "/robots.txt": "robots.txt",
     "/.nojekyll": ".nojekyll",
   };

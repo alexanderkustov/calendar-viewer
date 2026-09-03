@@ -310,6 +310,22 @@ body {
   padding-top: 0.5rem;
 }
 
+.today-item-name-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.today-item-name-link:hover,
+.today-item-name-link:focus-visible {
+  text-decoration: underline;
+}
+
+.today-item-name-link:focus-visible {
+  outline: 2px solid var(--muted);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 .today-item:last-child {
   border-bottom: 0;
 }

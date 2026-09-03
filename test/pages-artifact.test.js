@@ -7,6 +7,7 @@ const PROJECT_DIR = path.join(__dirname, '..');
 const ALJEZUR_STAGE_COMMAND = 'cp -R aljezur _site/';
 const TODAY_STAGE_COMMANDS = [
   'cp today.js _site/',
+  'cp airbnb-messages.json _site/',
   'cp -R today _site/'
 ];
 const DEPLOY_WORKFLOWS = [

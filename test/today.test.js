@@ -9,7 +9,9 @@ const {
   canonicalName,
   dateKey,
   hasCheckout,
-  nextDateKey
+  messageUrlFor,
+  nextDateKey,
+  renderTitle
 } = require('../today.js');
 
 function requestRoute(url) {
@@ -100,4 +102,84 @@ test('today route marks entries and exits', () => {
 
 test('today route includes tomorrow across month boundaries', () => {
   assert.equal(nextDateKey('2026-08-31'), '2026-09-01');
+});
+
+test('airbnb-messages.json route is served locally', () => {
+  const response = requestRoute('/airbnb-messages.json');
+
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.headers['Content-Type'], 'application/json; charset=utf-8');
+});
+
+test('airbnb-messages.json contains entries for all properties', async () => {
+  const raw = await fs.readFile(path.join(PROJECT_DIR, 'airbnb-messages.json'), 'utf8');
+  const config = JSON.parse(raw);
+  const { CALENDARS } = require('../calendar-sources.js');
+
+  for (const calendar of CALENDARS) {
+    const name = canonicalName(calendar.name);
+    assert.ok(name in config, `Missing config entry for ${name}`);
+  }
+});
+
+test('messageUrlFor resolves URL by property name', () => {
+  const map = {
+    'Pardais 205': 'https://airbnb.com/messages/100',
+    '336 Paraiso': 'https://airbnb.com/messages/200'
+  };
+
+  assert.equal(messageUrlFor('Pardais 205', map), 'https://airbnb.com/messages/100');
+  assert.equal(messageUrlFor('Unknown', map), '');
+});
+
+test('renderTitle produces link when messageUrl exists', () => {
+  global.document = {
+    createElement(tag) {
+      return {
+        className: '',
+        href: '',
+        rel: '',
+        setAttribute(key, val) {
+          this[key] = val;
+        },
+        tagName: tag,
+        target: '',
+        textContent: '',
+        title: ''
+      };
+    }
+  };
+
+  const node = renderTitle({
+    messageUrl: 'https://airbnb.com/messages/100',
+    name: 'Pardais 205'
+  });
+
+  assert.equal(node.tagName, 'a');
+  assert.equal(node.href, 'https://airbnb.com/messages/100');
+  assert.equal(node.target, '_blank');
+  assert.equal(node.rel, 'noopener noreferrer');
+  assert.equal(node.textContent, 'Pardais 205');
+  delete global.document;
+});
+
+test('renderTitle produces span when messageUrl is absent', () => {
+  global.document = {
+    createElement(tag) {
+      return {
+        className: '',
+        tagName: tag,
+        textContent: ''
+      };
+    }
+  };
+
+  const node = renderTitle({
+    messageUrl: '',
+    name: 'Silchoro 404'
+  });
+
+  assert.equal(node.tagName, 'span');
+  assert.equal(node.textContent, 'Silchoro 404');
+  delete global.document;
 });
