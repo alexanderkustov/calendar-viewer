@@ -51,6 +51,20 @@ function canonicalName(name) {
   return String(name || '').replace(BOOKING_SUFFIX, '').trim();
 }
 
+const RAFAEL_PROPERTIES = new Set([
+  'Antero A7',
+  'Pardais 205',
+  'Portimao G137',
+  'Portimao J138',
+  'Silchoro 404',
+  'Silchoro 1205'
+]);
+
+// Check if property belongs to Albufeira or Portimao (Rafael).
+function isRafaelProperty(name) {
+  return RAFAEL_PROPERTIES.has(canonicalName(name));
+}
+
 // Resolve Airbnb message URL for a property name.
 // Example: messageUrlFor('Pardais 205', map) => 'https://airbnb.com/...'
 function messageUrlFor(name, messageMap = {}) {
@@ -228,6 +242,17 @@ function showErrors(errorCount) {
   }
 }
 
+// Format stays for a specific day key.
+function formatDayStays(stays, dayKey, messageMap) {
+  return stays
+    .filter((stay) => stay[dayKey].size > 0)
+    .map((stay) => ({
+      activities: [...stay[dayKey]],
+      messageUrl: messageUrlFor(stay.name, messageMap),
+      name: stay.name
+    }));
+}
+
 async function loadToday(todayDateKey = dateKey()) {
   const cacheKey = Date.now();
   const tomorrowDateKey = nextDateKey(todayDateKey);
@@ -251,23 +276,13 @@ async function loadToday(todayDateKey = dateKey()) {
   }));
 
   const stays = mergeResults(results);
-  const today = stays
-    .filter((stay) => stay.today.size > 0)
-    .map((stay) => ({
-      activities: [...stay.today],
-      messageUrl: messageUrlFor(stay.name, messageMap),
-      name: stay.name
-    }));
-  const tomorrow = stays
-    .filter((stay) => stay.tomorrow.size > 0)
-    .map((stay) => ({
-      activities: [...stay.tomorrow],
-      messageUrl: messageUrlFor(stay.name, messageMap),
-      name: stay.name
-    }));
+  const mainStays = stays.filter((stay) => !isRafaelProperty(stay.name));
+  const rafaelStays = stays.filter((stay) => isRafaelProperty(stay.name));
 
-  renderDay('today', today);
-  renderDay('tomorrow', tomorrow);
+  renderDay('today', formatDayStays(mainStays, 'today', messageMap));
+  renderDay('tomorrow', formatDayStays(mainStays, 'tomorrow', messageMap));
+  renderDay('rafaelToday', formatDayStays(rafaelStays, 'today', messageMap));
+  renderDay('rafaelTomorrow', formatDayStays(rafaelStays, 'tomorrow', messageMap));
   showErrors(results.filter((result) => result.error).length);
 }
 
@@ -283,12 +298,31 @@ async function initToday() {
     const banner = document.getElementById('errorBanner');
     banner.hidden = false;
     banner.textContent = 'Não foi possível carregar as entradas e saídas.';
-    document.getElementById('todayList').hidden = true;
-    document.getElementById('tomorrowList').hidden = true;
-    document.getElementById('todayEmptyState').hidden = true;
-    document.getElementById('tomorrowEmptyState').hidden = true;
-    document.getElementById('todayCount').textContent = '';
-    document.getElementById('tomorrowCount').textContent = '';
+
+    const lists = [
+      'todayList',
+      'tomorrowList',
+      'todayEmptyState',
+      'tomorrowEmptyState',
+      'rafaelTodayList',
+      'rafaelTomorrowList',
+      'rafaelTodayEmptyState',
+      'rafaelTomorrowEmptyState'
+    ];
+    for (const id of lists) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.hidden = true;
+      }
+    }
+
+    const counts = ['todayCount', 'tomorrowCount', 'rafaelTodayCount', 'rafaelTomorrowCount'];
+    for (const id of counts) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.textContent = '';
+      }
+    }
   } finally {
     document.getElementById('loadingMsg').hidden = true;
   }
@@ -304,6 +338,7 @@ if (typeof module !== 'undefined') {
     canonicalName,
     dateKey,
     hasCheckout,
+    isRafaelProperty,
     messageUrlFor,
     nextDateKey,
     renderTitle

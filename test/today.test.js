@@ -9,6 +9,7 @@ const {
   canonicalName,
   dateKey,
   hasCheckout,
+  isRafaelProperty,
   messageUrlFor,
   nextDateKey,
   renderTitle
@@ -183,3 +184,26 @@ test('renderTitle produces span when messageUrl is absent', () => {
   assert.equal(node.textContent, 'Silchoro 404');
   delete global.document;
 });
+
+test('isRafaelProperty identifies Albufeira and Portimao properties', () => {
+  assert.equal(isRafaelProperty('Pardais 205'), true);
+  assert.equal(isRafaelProperty('Silchoro 1205'), true);
+  assert.equal(isRafaelProperty('Silchoro 404'), true);
+  assert.equal(isRafaelProperty('Antero A7'), true);
+  assert.equal(isRafaelProperty('Antero A7 booking'), true);
+  assert.equal(isRafaelProperty('Portimao J138'), true);
+  assert.equal(isRafaelProperty('Portimao G137'), true);
+
+  assert.equal(isRafaelProperty('Raul 1'), false);
+  assert.equal(isRafaelProperty('Aljezur'), false);
+  assert.equal(isRafaelProperty('Pescadores'), false);
+});
+
+test('today page includes Today - Rafael section below main ones', async () => {
+  const html = await fs.readFile(path.join(PROJECT_DIR, 'today/index.html'), 'utf8');
+
+  assert.match(html, /Today - Rafael/);
+  assert.match(html, /id="rafaelTodayList"/);
+  assert.match(html, /id="rafaelTomorrowList"/);
+});
+
