@@ -90,7 +90,18 @@
   {
     "start": {
       "type": "date",
-      "value": "2027-06-16"
+      "value": "2027-06-04"
+    },
+    "end": {
+      "type": "date",
+      "value": "2027-06-15"
+    },
+    "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2027-06-17"
     },
     "end": {
       "type": "date",
