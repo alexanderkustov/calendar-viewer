@@ -8,6 +8,7 @@ const {
   activitiesForDate,
   canonicalName,
   dateKey,
+  filterStays,
   hasCheckout,
   isRafaelProperty,
   messageUrlFor,
@@ -54,11 +55,36 @@ test('today route is served locally', () => {
   assert.doesNotMatch(response.body, /<h1[^>]*>Entradas e saídas<\/h1>/);
 });
 
+test('rafael route redirects to its directory', () => {
+  const response = requestRoute('/rafael');
+
+  assert.equal(response.statusCode, 301);
+  assert.equal(response.headers.Location, '/rafael/');
+});
+
+test('rafael route is served locally', () => {
+  const response = requestRoute('/rafael/');
+
+  assert.equal(response.statusCode, 200);
+  assert.match(response.body, /data-stay-group="rafael"/);
+});
+
 test('today page loads both day lists', async () => {
   const html = await fs.readFile(path.join(PROJECT_DIR, 'today/index.html'), 'utf8');
 
   assert.match(html, /id="todayList"/);
   assert.match(html, /id="tomorrowList"/);
+  assert.match(html, /\.\.\/today\.js/);
+  assert.doesNotMatch(html, /id="rafaelTodayList"/);
+  assert.doesNotMatch(html, /Today - Rafael/);
+});
+
+test('rafael page loads both day lists', async () => {
+  const html = await fs.readFile(path.join(PROJECT_DIR, 'rafael/index.html'), 'utf8');
+
+  assert.match(html, /id="todayList"/);
+  assert.match(html, /id="tomorrowList"/);
+  assert.match(html, /data-stay-group="rafael"/);
   assert.match(html, /\.\.\/today\.js/);
 });
 
@@ -199,11 +225,13 @@ test('isRafaelProperty identifies Albufeira and Portimao properties', () => {
   assert.equal(isRafaelProperty('Pescadores'), false);
 });
 
-test('today page includes Today - Rafael section below main ones', async () => {
-  const html = await fs.readFile(path.join(PROJECT_DIR, 'today/index.html'), 'utf8');
+test('filterStays keeps only the requested group', () => {
+  const stays = [
+    { name: 'Pardais 205' },
+    { name: 'Raul 1' }
+  ];
 
-  assert.match(html, /Today - Rafael/);
-  assert.match(html, /id="rafaelTodayList"/);
-  assert.match(html, /id="rafaelTomorrowList"/);
+  assert.deepEqual(filterStays(stays, 'rafael'), [{ name: 'Pardais 205' }]);
+  assert.deepEqual(filterStays(stays, 'main'), [{ name: 'Raul 1' }]);
 });
 

@@ -40,6 +40,7 @@ jobs:
           cp -R aljezur _site/
           cp -R mama _site/
           cp -R today _site/
+          cp -R rafael _site/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3

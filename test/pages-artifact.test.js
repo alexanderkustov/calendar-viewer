@@ -8,7 +8,8 @@ const ALJEZUR_STAGE_COMMAND = 'cp -R aljezur _site/';
 const TODAY_STAGE_COMMANDS = [
   'cp today.js _site/',
   'cp airbnb-messages.json _site/',
-  'cp -R today _site/'
+  'cp -R today _site/',
+  'cp -R rafael _site/'
 ];
 const DEPLOY_WORKFLOWS = [
   '.github/workflows/deploy-pages.yml',

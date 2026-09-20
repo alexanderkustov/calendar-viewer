@@ -16,7 +16,8 @@ const LOCATION_ROUTES = new Set([
   "/mama/2",
 ]);
 const TODAY_ROUTE = "/today";
-const PAGE_ROUTES = new Set([...LOCATION_ROUTES, TODAY_ROUTE]);
+const RAFAEL_ROUTE = "/rafael";
+const PAGE_ROUTES = new Set([...LOCATION_ROUTES, TODAY_ROUTE, RAFAEL_ROUTE]);
 const LOCATION_REDIRECTS = new Map([
   ["/mama", "/mama/1/"],
   ["/mama/index.html", "/mama/1/"],

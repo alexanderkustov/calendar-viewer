@@ -9,6 +9,7 @@ const TOMORROW_DAY_OFFSET = 1;
 const CONFIG_MESSAGES_PATH = 'airbnb-messages.json';
 const LINK_TARGET_BLANK = '_blank';
 const LINK_REL_EXTERNAL = 'noopener noreferrer';
+const STAY_GROUP_RAFAEL = 'rafael';
 const DATE_KEY_FORMATTER = new Intl.DateTimeFormat(DATE_KEY_LOCALE, {
   day: '2-digit',
   month: '2-digit',
@@ -253,8 +254,17 @@ function formatDayStays(stays, dayKey, messageMap) {
     }));
 }
 
+function filterStays(stays, group) {
+  if (group === STAY_GROUP_RAFAEL) {
+    return stays.filter((stay) => isRafaelProperty(stay.name));
+  }
+
+  return stays.filter((stay) => !isRafaelProperty(stay.name));
+}
+
 async function loadToday(todayDateKey = dateKey()) {
   const cacheKey = Date.now();
+  const stayGroup = document.documentElement.dataset.stayGroup || '';
   const tomorrowDateKey = nextDateKey(todayDateKey);
   const [calendars, messageMap] = await Promise.all([
     fetchJson(`${STATIC_DATA_DIR}/calendars.json`, cacheKey),
@@ -276,13 +286,10 @@ async function loadToday(todayDateKey = dateKey()) {
   }));
 
   const stays = mergeResults(results);
-  const mainStays = stays.filter((stay) => !isRafaelProperty(stay.name));
-  const rafaelStays = stays.filter((stay) => isRafaelProperty(stay.name));
+  const pageStays = filterStays(stays, stayGroup);
 
-  renderDay('today', formatDayStays(mainStays, 'today', messageMap));
-  renderDay('tomorrow', formatDayStays(mainStays, 'tomorrow', messageMap));
-  renderDay('rafaelToday', formatDayStays(rafaelStays, 'today', messageMap));
-  renderDay('rafaelTomorrow', formatDayStays(rafaelStays, 'tomorrow', messageMap));
+  renderDay('today', formatDayStays(pageStays, 'today', messageMap));
+  renderDay('tomorrow', formatDayStays(pageStays, 'tomorrow', messageMap));
   showErrors(results.filter((result) => result.error).length);
 }
 
@@ -303,11 +310,7 @@ async function initToday() {
       'todayList',
       'tomorrowList',
       'todayEmptyState',
-      'tomorrowEmptyState',
-      'rafaelTodayList',
-      'rafaelTomorrowList',
-      'rafaelTodayEmptyState',
-      'rafaelTomorrowEmptyState'
+      'tomorrowEmptyState'
     ];
     for (const id of lists) {
       const el = document.getElementById(id);
@@ -316,7 +319,7 @@ async function initToday() {
       }
     }
 
-    const counts = ['todayCount', 'tomorrowCount', 'rafaelTodayCount', 'rafaelTomorrowCount'];
+    const counts = ['todayCount', 'tomorrowCount'];
     for (const id of counts) {
       const el = document.getElementById(id);
       if (el) {
@@ -337,6 +340,7 @@ if (typeof module !== 'undefined') {
     activitiesForDate,
     canonicalName,
     dateKey,
+    filterStays,
     hasCheckout,
     isRafaelProperty,
     messageUrlFor,
