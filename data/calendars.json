@@ -21,72 +21,67 @@
   },
   {
     "id": 4,
-    "name": "Portimao J138",
+    "name": "Raul 1",
     "sourcePath": "calendar-4.json"
   },
   {
     "id": 5,
-    "name": "Portimao G137",
+    "name": "Raul Brandao 3",
     "sourcePath": "calendar-5.json"
   },
   {
     "id": 6,
-    "name": "Raul 1",
+    "name": "Balaia 404",
     "sourcePath": "calendar-6.json"
   },
   {
     "id": 7,
-    "name": "Raul Brandao 3",
+    "name": "Balaia 405",
     "sourcePath": "calendar-7.json"
   },
   {
     "id": 8,
-    "name": "Balaia 404",
+    "name": "Onda Verde",
     "sourcePath": "calendar-8.json"
   },
   {
     "id": 9,
-    "name": "Balaia 405",
+    "name": "Aljezur",
     "sourcePath": "calendar-9.json"
   },
   {
     "id": 10,
-    "name": "Onda Verde",
+    "name": "Pescadores",
     "sourcePath": "calendar-10.json"
   },
   {
     "id": 11,
-    "name": "Aljezur",
+    "name": "336 Paraiso",
     "sourcePath": "calendar-11.json"
   },
   {
     "id": 12,
-    "name": "Pescadores",
+    "name": "Eulalia Casa Blanca",
     "sourcePath": "calendar-12.json"
   },
   {
     "id": 13,
-    "name": "336 Paraiso",
+    "name": "Silchoro 404",
     "sourcePath": "calendar-13.json"
   },
   {
     "id": 14,
-    "name": "Eulalia Casa Blanca",
+    "name": "Vila Magna 503",
     "sourcePath": "calendar-14.json"
   },
   {
     "id": 15,
-    "name": "Silchoro 404",
+    "name": "Vila Magna 106",
     "sourcePath": "calendar-15.json"
   },
   {
     "id": 16,
-    "name": "Vila Magna 503",
+    "name": "Tenis 2C",
     "sourcePath": "calendar-16.json"
-  },
-  {
-    "id": 17,
-    "name": "Vila Magna 106",
-    "sourcePath": "calendar-17.json"
   }
 ]

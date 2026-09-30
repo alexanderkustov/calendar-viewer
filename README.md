@@ -36,7 +36,6 @@ Then open:
 
 - `http://localhost:3000`
 - `http://localhost:3000/albufeira/`
-- `http://localhost:3000/portimao/`
 - `http://localhost:3000/mama/1/`
 - `http://localhost:3000/mama/2/`
 - `http://localhost:3000/aljezur/`

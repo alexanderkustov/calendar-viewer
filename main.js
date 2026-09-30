@@ -12,7 +12,6 @@ const APP_ROOT_URL = new URL(APP_ROOT.endsWith('/') ? APP_ROOT : `${APP_ROOT}/`,
 const PAGE_LOCATION_ID = window.__CALENDAR_VIEWER_LOCATION__ || null;
 const LOCATION_ROUTES = [
   { id: 'albufeira', label: 'Albufeira', slug: '', tabGroup: 'main' },
-  { id: 'portimao', label: 'Portimão', slug: 'portimao', tabGroup: 'main' },
   { id: 'mama-1', label: 'Mama 1', slug: 'mama/1', tabGroup: 'mama' },
   { id: 'mama-2', label: 'Mama 2', slug: 'mama/2', tabGroup: 'mama' },
   { id: 'aljezur', label: 'Aljezur', slug: 'aljezur', tabGroup: 'mama' }
@@ -37,47 +36,45 @@ const CALENDAR_CATEGORIES = [
       {
         name: "Silchoro 404",
         location: 'albufeira',
-        sources: [15]
+        sources: [13]
       },
       {
         name: "Antero A7",
         location: 'albufeira',
         sources: [2, 3],
         messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2615151375?inbox_type=hosting&stay_listing_ids=914217783547257427&trip_stages=CURRENTLY_HOSTING'
+      },
+      {
+        name: "Tenis 2C",
+        location: 'albufeira',
+        sources: [18]
       }
-    ]
-  },
-  {
-    name: 'Portimao',
-    calendars: [
-      { name: "Portimao J138", location: 'portimao', sources: [4], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2609168651?inbox_type=hosting&stay_listing_ids=1635428772732094156&trip_stages=CURRENTLY_HOSTING' },
-      { name: "Portimao G137", location: 'portimao', sources: [5], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2532292472?inbox_type=hosting&stay_listing_ids=1635425171512419857&trip_stages=CURRENTLY_HOSTING' }
     ]
   },
   {
     name: 'Mama 1',
     calendars: [
-      { name: "Raul 1", location: 'mama-1', sources: [6] },
-      { name: "Raul Brandao 3", location: 'mama-1', sources: [7] },
-      { name: "Onda Verde", location: 'mama-1', sources: [10] },
-      { name: "Balaia 404", location: 'mama-1', sources: [8] },
-      { name: "Vila Magna 503", location: 'mama-1', sources: [16] },
-      { name: "Vila Magna 106", location: 'mama-1', sources: [17] },
-      { name: "Paraiso 336", location: 'mama-1', sources: [13], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2633130633?inbox_type=hosting&stay_listing_ids=1578004322904051113&trip_stages=CURRENTLY_HOSTING' }
+      { name: "Raul 1", location: 'mama-1', sources: [4] },
+      { name: "Raul Brandao 3", location: 'mama-1', sources: [5] },
+      { name: "Onda Verde", location: 'mama-1', sources: [8] },
+      { name: "Balaia 404", location: 'mama-1', sources: [6] },
+      { name: "Vila Magna 503", location: 'mama-1', sources: [14] },
+      { name: "Vila Magna 106", location: 'mama-1', sources: [15] },
+      { name: "Paraiso 336", location: 'mama-1', sources: [11], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2633130633?inbox_type=hosting&stay_listing_ids=1578004322904051113&trip_stages=CURRENTLY_HOSTING' }
     ]
   },
   {
     name: 'Mama 2',
     calendars: [
-      { name: "Pescadores", location: 'mama-2', sources: [12], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2622567070?inbox_type=hosting&stay_listing_ids=794191503164393359&trip_stages=CURRENTLY_HOSTING' },
-      { name: "Balaia 405", location: 'mama-2', sources: [9], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2514855243?inbox_type=hosting&stay_listing_ids=885874220580116381&trip_stages=CURRENTLY_HOSTING' },
-      { name: "Eulalia Casa Blanca", location: 'mama-2', sources: [14], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/?inbox_type=hosting&stay_listing_ids=1227650987862879407&trip_stages=CURRENTLY_HOSTING' }
+      { name: "Pescadores", location: 'mama-2', sources: [10], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2622567070?inbox_type=hosting&stay_listing_ids=794191503164393359&trip_stages=CURRENTLY_HOSTING' },
+      { name: "Balaia 405", location: 'mama-2', sources: [7], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2514855243?inbox_type=hosting&stay_listing_ids=885874220580116381&trip_stages=CURRENTLY_HOSTING' },
+      { name: "Eulalia Casa Blanca", location: 'mama-2', sources: [12], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/?inbox_type=hosting&stay_listing_ids=1227650987862879407&trip_stages=CURRENTLY_HOSTING' }
     ]
   },
   {
     name: 'Aljezur',
     calendars: [
-      { name: "Aljezur", location: 'aljezur', sources: [11], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2573815201?inbox_type=hosting&stay_listing_ids=40546691&trip_stages=CURRENTLY_HOSTING' }
+      { name: "Aljezur", location: 'aljezur', sources: [9], messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2573815201?inbox_type=hosting&stay_listing_ids=40546691&trip_stages=CURRENTLY_HOSTING' }
     ]
   }
 ];

@@ -55,13 +55,12 @@ function canonicalName(name) {
 const RAFAEL_PROPERTIES = new Set([
   'Antero A7',
   'Pardais 205',
-  'Portimao G137',
-  'Portimao J138',
   'Silchoro 404',
-  'Silchoro 1205'
+  'Silchoro 1205',
+  'Tenis 2C'
 ]);
 
-// Check if property belongs to Albufeira or Portimao (Rafael).
+// Check if property belongs to Albufeira (Rafael).
 function isRafaelProperty(name) {
   return RAFAEL_PROPERTIES.has(canonicalName(name));
 }

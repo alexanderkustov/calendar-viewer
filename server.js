@@ -10,7 +10,6 @@ const HOST = process.env.HOST || "127.0.0.1";
 const PORT = process.env.PORT || 3000;
 const LOCATION_ROUTES = new Set([
   "/albufeira",
-  "/portimao",
   "/aljezur",
   "/mama/1",
   "/mama/2",

@@ -16,14 +16,6 @@ const CALENDARS = [
     url: "https://ical.booking.com/v1/export?t=1e498d5c-9764-48b7-9a24-c4a2bb122a81",
   },
   {
-    name: "Portimao J138",
-    url: "https://www.airbnb.co.uk/calendar/ical/1635428772732094156.ics?t=f7047724c87e4449917c247332bf465f",
-  },
-  {
-    name: "Portimao G137",
-    url: "https://www.airbnb.co.uk/calendar/ical/1635425171512419857.ics?t=88790fa90b9c4231bab4773dd37fae23",
-  },
-  {
     name: "Raul 1",
     url: "https://www.airbnb.com/calendar/ical/48891793.ics?t=73cfb63e849d437687262fb8e2525013",
   },
@@ -70,6 +62,10 @@ const CALENDARS = [
   {
     name: "Vila Magna 106",
     url: "https://www.airbnb.co.uk/calendar/ical/41488043.ics?t=a86edbeae16a4259bb2ea27f388a7dc6",
+  },
+  {
+    name: "Tenis 2C",
+    url: "https://www.airbnb.com/calendar/ical/1785569479416545475.ics?t=fc415a0bc4e547479780e8ab17b34572&locale=en-GB",
   },
 ];
 
