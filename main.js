@@ -45,9 +45,9 @@ const CALENDAR_CATEGORIES = [
         messageUrl: 'https://www.airbnb.co.uk/hosting/messages/2615151375?inbox_type=hosting&stay_listing_ids=914217783547257427&trip_stages=CURRENTLY_HOSTING'
       },
       {
-        name: "Tenis 2C",
+        name: "Rua do Tenis",
         location: 'albufeira',
-        sources: [18]
+        sources: [16]
       }
     ]
   },

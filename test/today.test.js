@@ -217,7 +217,7 @@ test('isRafaelProperty identifies Albufeira properties', () => {
   assert.equal(isRafaelProperty('Silchoro 404'), true);
   assert.equal(isRafaelProperty('Antero A7'), true);
   assert.equal(isRafaelProperty('Antero A7 booking'), true);
-  assert.equal(isRafaelProperty('Tenis 2C'), true);
+  assert.equal(isRafaelProperty('Rua do Tenis'), true);
 
   assert.equal(isRafaelProperty('Raul 1'), false);
   assert.equal(isRafaelProperty('Aljezur'), false);

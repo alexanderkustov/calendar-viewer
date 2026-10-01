@@ -64,8 +64,8 @@ const CALENDARS = [
     url: "https://www.airbnb.co.uk/calendar/ical/41488043.ics?t=a86edbeae16a4259bb2ea27f388a7dc6",
   },
   {
-    name: "Tenis 2C",
-    url: "https://www.airbnb.com/calendar/ical/1785569479416545475.ics?t=fc415a0bc4e547479780e8ab17b34572&locale=en-GB",
+    name: "Rua do Tenis",
+    url: "https://www.airbnb.com/calendar/ical/1785569479416545475.ics?t=fc415a0bc4e547479780e8ab17b34572",
   },
 ];
 

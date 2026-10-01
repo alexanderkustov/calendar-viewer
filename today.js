@@ -57,7 +57,7 @@ const RAFAEL_PROPERTIES = new Set([
   'Pardais 205',
   'Silchoro 404',
   'Silchoro 1205',
-  'Tenis 2C'
+  'Rua do Tenis'
 ]);
 
 // Check if property belongs to Albufeira (Rafael).
