@@ -75,5 +75,16 @@
       "value": "2027-08-05"
     },
     "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2027-09-03"
+    },
+    "end": {
+      "type": "date",
+      "value": "2027-09-06"
+    },
+    "summary": "Reserved"
   }
 ]
