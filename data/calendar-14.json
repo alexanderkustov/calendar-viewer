@@ -24,7 +24,7 @@
   {
     "start": {
       "type": "date",
-      "value": "2027-02-16"
+      "value": "2027-02-17"
     },
     "end": {
       "type": "date",
@@ -72,7 +72,7 @@
     },
     "end": {
       "type": "date",
-      "value": "2027-11-19"
+      "value": "2027-11-20"
     },
     "summary": "Airbnb (Not available)"
   }
