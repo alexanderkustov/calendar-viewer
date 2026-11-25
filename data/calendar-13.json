@@ -31,5 +31,16 @@
       "value": "2027-01-03"
     },
     "summary": "Reserved"
+  },
+  {
+    "start": {
+      "type": "date",
+      "value": "2027-02-02"
+    },
+    "end": {
+      "type": "date",
+      "value": "2027-03-01"
+    },
+    "summary": "Reserved"
   }
 ]
